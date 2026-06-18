@@ -8,7 +8,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 
-from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
 
 from db.models import (
     AccountStatus, ItemCondition, ListingStatus,
@@ -71,6 +71,25 @@ class UserResponse(BaseModel):
     rating_count:           int
     transactions_completed: int
     account_status:         AccountStatus
+    created_at:             datetime
+
+
+class PublicUserResponse(BaseModel):
+    """Profile fields safe to expose to other users.
+
+    Deliberately excludes email, is_admin, and account_status to preserve the
+    app's anonymity model — identity beyond a display name is never public.
+    """
+    model_config = ConfigDict(from_attributes=True)
+
+    user_id:                uuid.UUID
+    full_name:              str
+    profile_picture_url:    Optional[str]
+    bio:                    Optional[str]
+    university:             Optional[str]
+    rating_avg:             Decimal
+    rating_count:           int
+    transactions_completed: int
     created_at:             datetime
 
 
@@ -171,7 +190,15 @@ class ChatResponse(BaseModel):
 
 
 class SendMessageRequest(BaseModel):
-    content: str
+    content: str = Field(max_length=4000)
+
+    @field_validator("content")
+    @classmethod
+    def _non_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Message content cannot be empty")
+        return v
 
 
 class MessageResponse(BaseModel):

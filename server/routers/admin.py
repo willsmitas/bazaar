@@ -67,6 +67,12 @@ def list_users(
     return query.order_by(User.created_at.desc()).limit(100).all()
 
 
+@router.get("/users/{user_id}", response_model=AdminUserResponse)
+def get_user(user_id: str, db: Session = Depends(get_db)):
+    """Full user record (incl. email) for moderation views."""
+    return _get_user_or_404(user_id, db)
+
+
 @router.post("/users/{user_id}/ban", response_model=AdminUserResponse)
 def ban_user(
     user_id: str,

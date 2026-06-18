@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from db.models import User
 from server.dependencies import get_current_user, get_db
-from server.schemas import UpdateUserRequest, UserResponse
+from server.schemas import PublicUserResponse, UpdateUserRequest, UserResponse
 from server.storage import save_image
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -40,8 +40,14 @@ async def upload_avatar(
     return current_user
 
 
-@router.get("/{user_id}", response_model=UserResponse)
-def get_user(user_id: str, db: Session = Depends(get_db)):
+@router.get("/{user_id}", response_model=PublicUserResponse)
+def get_user(
+    user_id: str,
+    _current_user: User = Depends(get_current_user),  # must be logged in
+    db: Session = Depends(get_db),
+):
+    """Public profile of another user. Returns only non-identifying fields
+    (no email) to preserve anonymity until a deal is struck."""
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
