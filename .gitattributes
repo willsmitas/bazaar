@@ -1,0 +1,12 @@
+# Normalize all text files to LF in the repository and on checkout, so line
+# endings never differ between machines (Windows / macOS / Linux).
+* text=auto eol=lf
+
+# Mark common binary types so Git never tries to normalize them.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.pdf  binary
