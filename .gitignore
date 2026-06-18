@@ -1,0 +1,23 @@
+# ── Secrets & environment ──────────────────────────────
+# NEVER commit .env — it holds your DB password and SECRET_KEY.
+.env
+.env.*
+!.env.example
+
+# ── Python ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# ── Local file storage (user-uploaded images) ─────────
+uploads/
+
+# ── OS / editor cruft ──────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

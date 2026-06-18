@@ -1,0 +1,61 @@
+"""
+main.py — Bazaar API entry point.
+
+Local dev:
+    uvicorn server.main:app --reload
+
+Production (started by Procfile):
+    uvicorn server.main:app --host 0.0.0.0 --port $PORT
+
+Interactive API docs: http://localhost:8000/docs
+"""
+from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from config import settings
+from server.routers import admin, auth, chats, listings, ratings, reports, transactions, users, ws
+
+app = FastAPI(
+    title="Bazaar API",
+    version="0.1.0",
+    debug=settings.debug,
+    # Hide /docs and /redoc in production
+    docs_url="/docs" if settings.debug else None,
+    redoc_url=None,
+)
+
+# CORS — parse the comma-separated CORS_ORIGINS setting
+_origins = ["*"] if settings.cors_origins.strip() == "*" else [
+    o.strip() for o in settings.cors_origins.split(",")
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Serve local uploads only when running the local storage backend.
+# In production (s3), files are served directly from the bucket.
+if settings.storage_backend == "local":
+    Path("uploads").mkdir(exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(listings.router)
+app.include_router(transactions.router)
+app.include_router(chats.router)
+app.include_router(ratings.router)
+app.include_router(reports.router)
+app.include_router(admin.router)
+app.include_router(ws.router)
+
+
+@app.get("/health", tags=["meta"])
+def health():
+    return {"status": "ok"}

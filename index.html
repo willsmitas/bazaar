@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Bazaar — Brown University</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#4E3629;--bg-dk:#2C1A0E;--bg-md:#7B5234;
+  --gold:#9E7E38;--gold-lt:#C4A55A;
+  --cream:#F9F6F2;--surface:#FFFFFF;
+  --border:#EDE5DB;--txt1:#1C1001;--txt2:#6B5E52;--txt3:#A89C91;
+  --radius:18px;--radius-sm:10px;
+  --sh:0 2px 14px rgba(78,54,41,.10);--sh-lg:0 8px 32px rgba(78,54,41,.18);
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:#111;display:flex;align-items:center;justify-content:center;font-family:var(--font);}
+
+/* ── Phone Shell ── */
+.shell{
+  width:390px;height:844px;background:var(--cream);
+  border-radius:50px;overflow:hidden;position:relative;
+  box-shadow:0 32px 100px rgba(0,0,0,.7),0 0 0 1.5px rgba(255,255,255,.08);
+  display:flex;flex-direction:column;
+}
+
+/* ── Status Bar ── */
+.sbar{
+  background:var(--bg);display:flex;justify-content:space-between;align-items:center;
+  padding:14px 24px 10px;color:rgba(255,255,255,.85);
+  font-size:12px;font-weight:600;letter-spacing:.2px;flex-shrink:0;
+}
+
+/* ── App ── */
+.app{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+
+/* ── Screens ── */
+.screen{display:none;flex:1;flex-direction:column;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}
+.screen::-webkit-scrollbar{display:none;}
+.screen.active{display:flex;}
+
+/* ── Header ── */
+.hdr{background:var(--bg);padding:16px 20px 20px;color:#fff;flex-shrink:0;}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;}
+.logo{font-size:26px;font-weight:900;letter-spacing:-1px;}
+.sub{font-size:12px;opacity:.65;margin-top:1px;}
+.hdr-acts{display:flex;gap:8px;}
+.ibtn{
+  width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.14);
+  border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  position:relative;transition:background .15s;
+}
+.ibtn:hover{background:rgba(255,255,255,.24);}
+.rdot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:#EF4444;border-radius:50%;border:1.5px solid var(--bg);}
+
+/* ── Search Bar ── */
+.sbar-inp{
+  margin-top:14px;background:rgba(255,255,255,.14);border-radius:12px;
+  padding:10px 14px;display:flex;align-items:center;gap:8px;
+}
+.sbar-inp input{flex:1;background:none;border:none;outline:none;color:#fff;font:500 15px var(--font);}
+.sbar-inp input::placeholder{color:rgba(255,255,255,.5);}
+
+/* ── Content ── */
+.content{padding:16px;flex:1;}
+
+/* ── Cards ── */
+.card{background:var(--surface);border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:var(--sh);}
+
+/* ── Form ── */
+.flbl{display:block;font-size:11px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;}
+.fld{margin-bottom:18px;}
+.inp{
+  width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);
+  font:500 15px var(--font);color:var(--txt1);background:var(--cream);outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.inp:focus{border-color:var(--bg);box-shadow:0 0 0 3px rgba(78,54,41,.09);}
+.inp::placeholder{color:var(--txt3);}
+textarea.inp{resize:none;height:84px;line-height:1.5;}
+
+/* ── Photo Upload ── */
+.pu{
+  width:100%;height:172px;border:2px dashed var(--border);border-radius:var(--radius);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;cursor:pointer;background:var(--cream);color:var(--txt3);
+  transition:all .2s;margin-bottom:18px;position:relative;overflow:hidden;
+}
+.pu:hover{border-color:var(--bg);color:var(--bg);background:rgba(78,54,41,.03);}
+.pu-ico{font-size:36px;}.pu-lbl{font-size:14px;font-weight:600;}.pu-hint{font-size:12px;}
+.pu-overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;
+  justify-content:center;color:#fff;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;
+}
+.pu:hover .pu-overlay{opacity:1;}
+
+/* ── Chips ── */
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{
+  padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);
+  font:600 13px var(--font);color:var(--txt2);cursor:pointer;background:var(--surface);
+  transition:all .15s;user-select:none;
+}
+.chip:hover{border-color:var(--bg);color:var(--bg);}
+.chip.sel{background:var(--bg);border-color:var(--bg);color:#fff;}
+
+/* ── Price Row ── */
+.pr-row{display:flex;align-items:center;gap:10px;}
+.pr-row .inp{flex:1;}
+.pr-sep{color:var(--txt3);font-weight:700;font-size:16px;flex-shrink:0;}
+.pr-wrap{position:relative;flex:1;}
+.pr-sym{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--txt3);font-weight:600;}
+.pr-wrap .inp{padding-left:26px;}
+
+/* ── Buttons ── */
+.btn{
+  display:block;width:100%;padding:15px;border:none;border-radius:var(--radius-sm);
+  font:700 15px var(--font);cursor:pointer;transition:opacity .15s,transform .1s;
+  text-align:center;letter-spacing:.2px;
+}
+.btn:active{transform:scale(.98);}
+.btn-p{background:var(--bg);color:#fff;}
+.btn-p:hover{opacity:.88;}
+.btn-o{background:transparent;color:var(--bg);border:1.5px solid var(--bg);}
+.btn-o:hover{background:rgba(78,54,41,.05);}
+.btn-g{background:var(--gold);color:#fff;}
+.btn-g:hover{opacity:.88;}
+.btn-sm{padding:8px 16px;font-size:13px;width:auto;}
+
+/* ── Tip Banner ── */
+.tip{
+  background:rgba(158,126,56,.12);border:1px solid rgba(158,126,56,.25);
+  border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;
+  gap:8px;margin-bottom:16px;
+}
+.tip-i{font-size:14px;flex-shrink:0;margin-top:1px;}
+.tip-t{font-size:12px;color:#7A5E1A;line-height:1.45;}
+
+/* ── Section Header ── */
+.sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-t{font-size:17px;font-weight:800;color:var(--txt1);}
+.sec-l{font-size:13px;font-weight:600;color:var(--bg);cursor:pointer;}
+
+/* ── Listing Card ── */
+.lcard{
+  background:var(--surface);border-radius:var(--radius);display:flex;
+  overflow:hidden;margin-bottom:10px;box-shadow:var(--sh);cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+}
+.lcard:hover{transform:translateY(-1px);box-shadow:var(--sh-lg);}
+.limg{width:88px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(135deg,var(--bg),var(--bg-md));overflow:hidden;}
+.limg img{width:88px;height:100%;object-fit:cover;display:block;flex-shrink:0;}
+.lbody{padding:12px 14px;flex:1;min-width:0;}
+.ltitle{font-size:14px;font-weight:700;color:var(--txt1);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ldesc{font-size:12px;color:var(--txt2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.45;margin-bottom:8px;}
+.lfoot{display:flex;align-items:center;justify-content:space-between;}
+.lprice{font-size:15px;font-weight:800;color:var(--bg);}
+
+/* ── Tags ── */
+.tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;letter-spacing:.3px;text-transform:uppercase;}
+.t-sell{background:rgba(78,54,41,.10);color:var(--bg);}
+.t-want{background:rgba(158,126,56,.15);color:var(--gold);}
+.t-lock{background:rgba(34,197,94,.12);color:#16A34A;}
+
+/* ── Tab Bar ── */
+.tabs{display:flex;background:var(--surface);border-radius:12px;padding:4px;margin-bottom:14px;}
+.tab{flex:1;padding:9px;border:none;background:none;font:600 13px var(--font);color:var(--txt2);border-radius:9px;cursor:pointer;transition:all .18s;}
+.tab.on{background:var(--bg);color:#fff;}
+
+/* ── Request Form ── */
+.rform{background:var(--surface);border-radius:var(--radius);padding:18px;margin-bottom:12px;box-shadow:var(--sh);display:none;}
+.rform.open{display:block;}
+
+/* ── Open Request Card ── */
+.rcard{background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--sh);}
+.rcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.rcard-title{font:700 14px var(--font);color:var(--txt1);}
+.rcard-desc{font-size:13px;color:var(--txt2);margin-bottom:8px;}
+.rcard-foot{display:flex;justify-content:space-between;align-items:center;}
+.rcard-budget{font:700 14px var(--font);color:var(--gold);}
+
+/* ── Chat List ── */
+.cli{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .12s;
+}
+.cli:hover{background:var(--cream);}
+.av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 18px var(--font);color:#fff;flex-shrink:0;}
+.av-a{background:var(--bg);}
+.av-b{background:var(--gold);}
+.av-c{background:var(--bg-md);}
+.cm{flex:1;min-width:0;}
+.cnr{display:flex;justify-content:space-between;margin-bottom:2px;}
+.cn{font-size:15px;font-weight:700;color:var(--txt1);}
+.ct{font-size:11px;color:var(--txt3);}
+.cpr{display:flex;justify-content:space-between;align-items:center;}
+.cp{font-size:13px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:210px;}
+.cbadge{background:var(--bg);color:#fff;font:700 11px var(--font);padding:2px 7px;border-radius:10px;flex-shrink:0;}
+
+/* ── Chat Overlay ── */
+.cov{position:absolute;inset:0;background:var(--cream);display:none;flex-direction:column;z-index:50;}
+.cov.open{display:flex;animation:slidein .26s cubic-bezier(.25,.46,.45,.94);}
+@keyframes slidein{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+.chdr{background:var(--bg);padding:12px 16px;display:flex;align-items:center;gap:12px;color:#fff;flex-shrink:0;}
+.cback{background:none;border:none;color:#fff;cursor:pointer;padding:4px;line-height:0;}
+.chdr-i h3{font-size:16px;font-weight:700;}
+.chdr-i p{font-size:12px;opacity:.7;}
+.chdr-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 15px var(--font);color:#fff;}
+
+.ibanner{
+  margin:12px 14px 0;background:var(--surface);border-radius:14px;
+  padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--sh);flex-shrink:0;
+}
+.ibanner-ico{font-size:28px;}
+.ibanner-info h4{font-size:13px;font-weight:700;color:var(--txt1);}
+.ibanner-info p{font-size:12px;color:var(--txt2);}
+.ibanner-price{margin-left:auto;background:var(--bg);color:#fff;padding:5px 12px;border-radius:10px;font:700 14px var(--font);}
+.ibanner-price.locked{background:#16A34A;}
+
+.msgs{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:6px;scrollbar-width:none;}
+.msgs::-webkit-scrollbar{display:none;}
+
+.msg{max-width:74%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.42;}
+.msg.them{background:var(--surface);color:var(--txt1);border-bottom-left-radius:5px;align-self:flex-start;box-shadow:var(--sh);}
+.msg.me{background:var(--bg);color:#fff;border-bottom-right-radius:5px;align-self:flex-end;}
+.mtime{font-size:10px;color:var(--txt3);text-align:center;margin:6px 0 2px;}
+.sysmsg{background:rgba(78,54,41,.07);border-radius:10px;padding:7px 14px;font:600 12px var(--font);color:var(--bg);text-align:center;align-self:center;}
+
+.cinbar{
+  display:flex;align-items:center;gap:8px;padding:10px 14px 14px;
+  background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;
+}
+.cinp{
+  flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:20px;
+  font:400 14px var(--font);background:var(--cream);outline:none;color:var(--txt1);
+}
+.cinp:focus{border-color:var(--bg);}
+.sbtn{
+  width:38px;height:38px;border-radius:50%;background:var(--bg);border:none;
+  color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:opacity .15s;
+}
+.sbtn:hover{opacity:.85;}
+
+/* ── Profile ── */
+.phdr{background:var(--bg);padding:24px 20px 36px;text-align:center;color:#fff;}
+.pav{
+  width:84px;height:84px;border-radius:50%;background:var(--gold);
+  margin:0 auto 12px;display:flex;align-items:center;justify-content:center;
+  font:700 30px var(--font);color:#fff;border:3px solid rgba(255,255,255,.25);
+}
+.pname{font-size:22px;font-weight:900;margin-bottom:4px;}
+.puni{font-size:13px;opacity:.72;display:flex;align-items:center;justify-content:center;gap:5px;}
+.prat{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;font-size:13px;opacity:.85;}
+
+.pstats{
+  display:flex;background:var(--surface);border-radius:16px;
+  margin:-20px 16px 0;box-shadow:var(--sh-lg);overflow:hidden;
+}
+.pstat{flex:1;padding:14px 8px;text-align:center;border-right:1px solid var(--border);}
+.pstat:last-child{border-right:none;}
+.pstat-v{font-size:21px;font-weight:900;color:var(--bg);}
+.pstat-l{font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
+
+.mrow{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 0;border-bottom:1px solid var(--border);cursor:pointer;
+}
+.mrow:last-child{border-bottom:none;}
+.mrow-l{display:flex;align-items:center;gap:12px;}
+.mico{width:36px;height:36px;border-radius:10px;background:rgba(78,54,41,.08);display:flex;align-items:center;justify-content:center;font-size:17px;}
+.mlbl{font-size:15px;font-weight:500;color:var(--txt1);}
+
+/* ── Bottom Nav ── */
+.bnav{background:var(--surface);border-top:1px solid var(--border);display:flex;padding:6px 0 14px;flex-shrink:0;}
+.nbtn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  border:none;background:none;color:var(--txt3);font:600 10px var(--font);
+  cursor:pointer;padding:4px 0;transition:color .15s;position:relative;
+}
+.nbtn.on{color:var(--bg);}
+.nbtn svg{width:22px;height:22px;}
+.ndot{position:absolute;top:4px;right:calc(50% - 18px);width:7px;height:7px;background:#EF4444;border-radius:50%;border:1.5px solid var(--surface);}
+
+/* ── Toast ── */
+.toast{
+  position:absolute;bottom:90px;left:50%;transform:translateX(-50%);
+  background:#1C1001;color:#fff;padding:10px 20px;border-radius:20px;
+  font:600 13px var(--font);white-space:nowrap;z-index:200;pointer-events:none;
+  opacity:0;transition:opacity .25s;
+}
+.toast.show{opacity:1;}
+
+/* ── Modal ── */
+.modal{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:100;display:none;align-items:center;justify-content:center;padding:24px;}
+.modal.open{display:flex;}
+.mcard{background:var(--surface);border-radius:var(--radius);padding:28px 24px;text-align:center;width:100%;}
+.mcard-ico{font-size:56px;margin-bottom:12px;}
+.mcard-t{font-size:20px;font-weight:900;color:var(--txt1);margin-bottom:8px;}
+.mcard-d{font-size:14px;color:var(--txt2);margin-bottom:20px;line-height:1.5;}
+
+/* ── Misc ── */
+.row2{display:flex;gap:10px;}
+.row2>*{flex:1;}
+.stars{color:var(--gold);}
+.vbadge{font-size:11px;font-weight:700;color:#16A34A;background:rgba(34,197,94,.1);padding:3px 8px;border-radius:8px;}
+
+/* ── Auth ── */
+.auth{position:absolute;inset:0;z-index:300;background:var(--bg);display:flex;flex-direction:column;overflow-y:auto;scrollbar-width:none;}
+.auth::-webkit-scrollbar{display:none;}
+.auth.hidden{display:none;}
+.auth-hero{padding:60px 28px 26px;text-align:center;color:#fff;flex-shrink:0;}
+.auth-logo{font-size:42px;font-weight:900;letter-spacing:-1.5px;}
+.auth-tag{font-size:13px;opacity:.7;margin-top:4px;}
+.auth-body{background:var(--cream);border-radius:28px 28px 0 0;flex:1;padding:26px 22px 32px;}
+.auth-title{font-size:21px;font-weight:800;color:var(--txt1);margin-bottom:4px;}
+.auth-sub{font-size:13px;color:var(--txt2);margin-bottom:20px;line-height:1.5;}
+.auth-err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#B91C1C;font-size:13px;padding:10px 12px;border-radius:10px;margin-bottom:14px;display:none;}
+.auth-err.show{display:block;}
+.auth-switch{text-align:center;font-size:13px;color:var(--txt2);margin-top:18px;}
+.auth-switch b{color:var(--bg);font-weight:700;cursor:pointer;}
+.otp-inp{letter-spacing:8px;text-align:center;font-size:22px;font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Status Bar -->
+  <div class="sbar">
+    <span>9:41</span>
+    <span style="font-size:11px;letter-spacing:.5px;">BROWN UNIVERSITY</span>
+    <span style="display:flex;gap:5px;align-items:center;">
+      <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="4" width="2" height="6" rx="1"/><rect x="3" y="2" width="2" height="8" rx="1"/><rect x="6" y="1" width="2" height="9" rx="1"/><rect x="9" y="0" width="2" height="10" rx="1"/></svg>
+      🔋
+    </span>
+  </div>
+
+  <div class="app" id="app">
+
+    <!-- ═══════════════════════════════
+         AUTH OVERLAY (login / register / verify / reset)
+    ════════════════════════════════ -->
+    <div class="auth" id="authScreen">
+      <div class="auth-hero">
+        <div class="auth-logo">Bazaar</div>
+        <div class="auth-tag">Brown University Marketplace</div>
+      </div>
+      <div class="auth-body">
+        <div class="auth-err" id="authErr"></div>
+
+        <!-- Login -->
+        <div id="view-login">
+          <div class="auth-title">Welcome back</div>
+          <div class="auth-sub">Sign in to buy and sell on campus.</div>
+          <div class="fld"><label class="flbl">Brown Email</label><input class="inp" id="li-email" type="email" placeholder="you@brown.edu" autocomplete="username"/></div>
+          <div class="fld"><label class="flbl">Password</label><input class="inp" id="li-pw" type="password" placeholder="••••••••" autocomplete="current-password"/></div>
+          <button class="btn btn-p" onclick="doLogin()">Sign In</button>
+          <div class="auth-switch">No account? <b onclick="showView('register')">Create one</b></div>
+          <div class="auth-switch" style="margin-top:8px;"><b onclick="showView('forgot')">Forgot password?</b></div>
+        </div>
+
+        <!-- Register -->
+        <div id="view-register" style="display:none;">
+          <div class="auth-title">Create your account</div>
+          <div class="auth-sub">Use your university email so we can verify you're a student.</div>
+          <div class="fld"><label class="flbl">Full Name</label><input class="inp" id="re-name" placeholder="William Smitas"/></div>
+          <div class="fld"><label class="flbl">Brown Email</label><input class="inp" id="re-email" type="email" placeholder="you@brown.edu"/></div>
+          <div class="fld"><label class="flbl">Password</label><input class="inp" id="re-pw" type="password" placeholder="At least 8 characters"/></div>
+          <button class="btn btn-p" onclick="doRegister()">Create Account</button>
+          <div class="auth-switch">Already have one? <b onclick="showView('login')">Sign in</b></div>
+        </div>
+
+        <!-- Verify email -->
+        <div id="view-verify" style="display:none;">
+          <div class="auth-title">Check your email</div>
+          <div class="auth-sub">We sent a 6-digit code to <b id="ve-email"></b>.<br><span id="ve-devhint" style="display:none;color:#7A5E1A;">Dev mode: the code is printed in your server console.</span></div>
+          <div class="fld"><label class="flbl">Verification Code</label><input class="inp otp-inp" id="ve-code" maxlength="6" inputmode="numeric" placeholder="000000"/></div>
+          <button class="btn btn-p" onclick="doVerify()">Verify &amp; Continue</button>
+          <div class="auth-switch"><b onclick="doResend()">Resend code</b></div>
+        </div>
+
+        <!-- Forgot / reset password -->
+        <div id="view-forgot" style="display:none;">
+          <div class="auth-title">Reset password</div>
+          <div class="auth-sub">Enter your email and we'll send a reset code.</div>
+          <div class="fld"><label class="flbl">Brown Email</label><input class="inp" id="fp-email" type="email" placeholder="you@brown.edu"/></div>
+          <button class="btn btn-p" onclick="doForgot()">Send Reset Code</button>
+          <div id="fp-step2" style="display:none;">
+            <div class="fld" style="margin-top:18px;"><label class="flbl">Reset Code</label><input class="inp otp-inp" id="fp-code" maxlength="6" inputmode="numeric" placeholder="000000"/></div>
+            <div class="fld"><label class="flbl">New Password</label><input class="inp" id="fp-pw" type="password" placeholder="At least 8 characters"/></div>
+            <button class="btn btn-p" onclick="doReset()">Set New Password</button>
+          </div>
+          <div class="auth-switch"><b onclick="showView('login')">Back to sign in</b></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="modal">
+      <div class="mcard">
+        <div class="mcard-ico">🎉</div>
+        <div class="mcard-t">Listing Posted!</div>
+        <div class="mcard-d">Your item is now live. You'll stay <strong>anonymous</strong> until a buyer opens a chat with you.</div>
+        <button class="btn btn-p" onclick="closeModal()">Done</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         CHAT OVERLAY
+    ════════════════════════════════ -->
+    <div class="cov" id="chatOverlay">
+      <div class="chdr">
+        <button class="cback" onclick="closeChat()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <div class="chdr-av av-b" id="cAv">M</div>
+        <div class="chdr-i">
+          <h3 id="cName">Anon Buyer #1</h3>
+          <p id="cSub">Negotiating · TI-84 Calculator</p>
+        </div>
+        <div style="margin-left:auto;">
+          <button class="ibtn" onclick="reportCurrentChat()" title="Report this user">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="ibanner" id="iBanner">
+        <div class="ibanner-ico" id="iIco">🧮</div>
+        <div class="ibanner-info">
+          <h4 id="iName">TI-84 Plus Calculator</h4>
+          <p id="iDesc">Like New · Electronics</p>
+        </div>
+        <div class="ibanner-price" id="iPrice">$45</div>
+      </div>
+
+      <div class="msgs" id="msgs"></div>
+
+      <div id="lockDiv" style="padding:0 14px 6px;flex-shrink:0;display:none;">
+        <button class="btn btn-g" style="font-size:14px;" onclick="lockPrice()">🔒 Lock in this price — Accept &amp; Deliver</button>
+      </div>
+
+      <div class="cinbar">
+        <button class="ibtn" style="background:rgba(78,54,41,.08);color:var(--bg);flex-shrink:0;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </button>
+        <input type="text" class="cinp" id="cinp" placeholder="Message…"/>
+        <button class="sbtn" onclick="sendMsg()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         ADMIN / MODERATION OVERLAY
+    ════════════════════════════════ -->
+    <div class="cov" id="adminOverlay">
+      <div class="chdr">
+        <button class="cback" onclick="closeAdmin()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <div class="chdr-i">
+          <h3>Moderation</h3>
+          <p>Pending reports</p>
+        </div>
+      </div>
+      <div class="content" id="adminBody" style="overflow-y:auto;flex:1;"></div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         SCREEN 1 — LIST ITEM
+    ════════════════════════════════ -->
+    <div class="screen active" id="screen-list">
+      <div class="hdr" style="flex-shrink:0;">
+        <div class="hdr-row">
+          <div><div class="logo">Bazaar</div><div class="sub">Brown University Marketplace</div></div>
+          <div class="hdr-acts">
+            <button class="ibtn" onclick="showToast('3 new notifications')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+              <div class="rdot"></div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="tip">
+          <span class="tip-i">💡</span>
+          <span class="tip-t">Listings are <strong>anonymous</strong> — your identity is only revealed when you both agree to meet up.</span>
+        </div>
+
+        <!-- Photo -->
+        <div class="pu" id="pu" onclick="tapPhoto()">
+          <div class="pu-ico" id="puIco">📷</div>
+          <div class="pu-lbl" id="puLbl">Add Photos</div>
+          <div class="pu-hint" id="puHint">Tap to take or choose from library</div>
+          <div class="pu-overlay" id="puOv">📷 Change Photo</div>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="onPhotoPicked(event)"/>
+
+        <div class="fld">
+          <label class="flbl">Item Name</label>
+          <input type="text" class="inp" id="iname" placeholder="e.g. TI-84 Calculator" maxlength="255"/>
+        </div>
+
+        <div class="fld">
+          <label class="flbl">Description</label>
+          <textarea class="inp" id="idesc" placeholder="Condition, model, why you're selling…"></textarea>
+        </div>
+
+        <div class="fld">
+          <label class="flbl">Category</label>
+          <div class="chips" id="catChips">
+            <div class="chip" onclick="pickChip(this,'cat')">📚 Books</div>
+            <div class="chip" onclick="pickChip(this,'cat')">💻 Electronics</div>
+            <div class="chip" onclick="pickChip(this,'cat')">👕 Clothing</div>
+            <div class="chip" onclick="pickChip(this,'cat')">🪑 Furniture</div>
+            <div class="chip" onclick="pickChip(this,'cat')">🎨 Art &amp; Decor</div>
+            <div class="chip" onclick="pickChip(this,'cat')">🛠 Services</div>
+            <div class="chip" onclick="pickChip(this,'cat')">✨ Other</div>
+          </div>
+        </div>
+
+        <div class="fld">
+          <label class="flbl">Condition</label>
+          <div class="chips" id="condChips">
+            <div class="chip" onclick="pickChip(this,'cond')">New</div>
+            <div class="chip sel" onclick="pickChip(this,'cond')">Like New</div>
+            <div class="chip" onclick="pickChip(this,'cond')">Good</div>
+            <div class="chip" onclick="pickChip(this,'cond')">Fair</div>
+          </div>
+        </div>
+
+        <div class="fld">
+          <label class="flbl">Your Price Range</label>
+          <div class="pr-row">
+            <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="priceMin" placeholder="Min" min="0"/></div>
+            <div class="pr-sep">—</div>
+            <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="priceMax" placeholder="Max" min="0"/></div>
+          </div>
+        </div>
+
+        <button class="btn btn-p" onclick="postListing()">Post Listing</button>
+        <div style="height:24px;"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         SCREEN 2 — BROWSE / REQUEST
+    ════════════════════════════════ -->
+    <div class="screen" id="screen-request">
+      <div class="hdr" style="flex-shrink:0;">
+        <div class="hdr-row">
+          <div><div class="logo">Bazaar</div><div class="sub">Find what you need</div></div>
+          <div class="hdr-acts">
+            <button class="ibtn" onclick="showToast('Filter coming soon')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="sbar-inp">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search listings…" id="srch" oninput="filterL(this.value)"/>
+        </div>
+      </div>
+
+      <div class="content">
+
+        <!-- Collapsible request form -->
+        <div class="rform" id="rform">
+          <div style="font:800 16px var(--font);color:var(--txt1);margin-bottom:14px;">Post a Request</div>
+          <div class="fld">
+            <label class="flbl">What are you looking for?</label>
+            <input type="text" class="inp" id="rqTitle" placeholder="e.g. Organic Chemistry textbook" maxlength="255"/>
+          </div>
+          <div class="fld">
+            <label class="flbl">Details</label>
+            <textarea class="inp" id="rqDesc" placeholder="Edition, condition preference…"></textarea>
+          </div>
+          <div class="fld">
+            <label class="flbl">Your Budget</label>
+            <div class="pr-row">
+              <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="rqMin" placeholder="Min" min="0"/></div>
+              <div class="pr-sep">—</div>
+              <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="rqMax" placeholder="Max" min="0"/></div>
+            </div>
+          </div>
+          <div class="row2">
+            <button class="btn btn-o" onclick="toggleRform()">Cancel</button>
+            <button class="btn btn-p" onclick="submitReq()">Post Request</button>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="sec-t">Available Now</div>
+          <span class="sec-l" onclick="toggleRform()">+ Request Item</span>
+        </div>
+        <div id="lcont"></div>
+
+        <div class="sec" style="margin-top:8px;">
+          <div class="sec-t">Open Requests</div>
+          <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;background:rgba(78,54,41,.08);color:var(--bg);">👤 Anonymous</span>
+        </div>
+
+        <div id="reqcont"></div>
+
+        <div style="height:24px;"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         SCREEN 3 — TRANSACTIONS
+    ════════════════════════════════ -->
+    <div class="screen" id="screen-transactions">
+      <div class="hdr" style="flex-shrink:0;">
+        <div class="hdr-row">
+          <div><div class="logo">Chats</div><div class="sub">Buying &amp; selling conversations</div></div>
+          <div class="hdr-acts">
+            <button class="ibtn" onclick="showToast('Mark all read')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding:12px 14px 0;flex-shrink:0;">
+        <div class="tabs">
+          <button class="tab on" id="tab-a" onclick="switchTab('a')">Active (3)</button>
+          <button class="tab" id="tab-d" onclick="switchTab('d')">Completed</button>
+        </div>
+      </div>
+
+      <div id="tA"><div id="chatList"></div></div>
+
+      <div id="tD" style="display:none;"><div id="completedList"></div></div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         SCREEN 4 — PROFILE
+    ════════════════════════════════ -->
+    <div class="screen" id="screen-profile">
+      <div class="phdr">
+        <div class="pav" id="pAv">?</div>
+        <div class="pname" id="pName">—</div>
+        <div class="puni" id="pUni">🐻 Brown University</div>
+        <div class="prat" id="pRat"><span class="stars">☆☆☆☆☆</span> 0.0 &nbsp;·&nbsp; 0 reviews</div>
+      </div>
+
+      <div class="pstats">
+        <div class="pstat"><div class="pstat-v" id="stListed">0</div><div class="pstat-l">Listed</div></div>
+        <div class="pstat"><div class="pstat-v" id="stSold">0</div><div class="pstat-l">Sold</div></div>
+        <div class="pstat"><div class="pstat-v" id="stEarned">$0</div><div class="pstat-l">Earned</div></div>
+      </div>
+
+      <div class="content" style="padding-top:20px;">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font:700 15px var(--font);color:var(--txt1);">About</span>
+            <span style="font-size:13px;color:var(--bg);font-weight:600;cursor:pointer;" onclick="editBio()">Edit</span>
+          </div>
+          <p id="pBio" style="font-size:14px;color:var(--txt2);line-height:1.55;">—</p>
+        </div>
+
+        <div class="sec">
+          <div class="sec-t">My Active Listings</div>
+          <span class="sec-l" onclick="switchScreen('list')">+ New</span>
+        </div>
+
+        <div id="myListings"></div>
+
+        <div class="sec-t" style="margin:18px 0 10px;">Settings</div>
+        <div class="card" style="padding:4px 18px;">
+          <div class="mrow" id="adminRow" style="display:none;" onclick="openAdmin()">
+            <div class="mrow-l"><div class="mico" style="background:rgba(158,126,56,.15);">🛡️</div><span class="mlbl">Moderation</span></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+          <div class="mrow">
+            <div class="mrow-l"><div class="mico">🔔</div><span class="mlbl">Notifications</span></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+          <div class="mrow">
+            <div class="mrow-l"><div class="mico">💳</div><span class="mlbl">Payment Methods</span></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+          <div class="mrow">
+            <div class="mrow-l"><div class="mico">🔒</div><span class="mlbl">Privacy &amp; Safety</span></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+          <div class="mrow">
+            <div class="mrow-l"><div class="mico">🏫</div><span class="mlbl">University Email</span></div>
+            <span class="vbadge">Verified</span>
+          </div>
+          <div class="mrow" onclick="signOut()">
+            <div class="mrow-l">
+              <div class="mico" style="background:rgba(239,68,68,.10);">🚪</div>
+              <span class="mlbl" style="color:#EF4444;">Sign Out</span>
+            </div>
+          </div>
+        </div>
+        <div style="height:24px;"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         BOTTOM NAV
+    ════════════════════════════════ -->
+    <nav class="bnav">
+      <button class="nbtn on" id="nav-list" onclick="switchScreen('list')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        List
+      </button>
+      <button class="nbtn" id="nav-request" onclick="switchScreen('request')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Browse
+      </button>
+      <button class="nbtn" id="nav-transactions" onclick="switchScreen('transactions')" style="position:relative;">
+        <div class="ndot"></div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Chats
+      </button>
+      <button class="nbtn" id="nav-profile" onclick="switchScreen('profile')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </button>
+    </nav>
+
+  </div><!-- /app -->
+</div><!-- /shell -->
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   CONFIG — where the API lives.
+   Local dev defaults to the FastAPI server on :8000.
+   To point at a cloud deployment without editing this file, run in
+   the browser console:  localStorage.setItem('bazaar_api','https://api.yoursite.com')
+════════════════════════════════════════════════════════════ */
+const API_BASE = (localStorage.getItem('bazaar_api') || 'http://localhost:8000').replace(/\/$/, '');
+const WS_BASE  = API_BASE.replace(/^http/, 'ws');   // http→ws, https→wss
+
+/* ════ TOKEN STORE (localStorage) ════ */
+const Tok = {
+  get access()  { return localStorage.getItem('bz_access'); },
+  get refresh() { return localStorage.getItem('bz_refresh'); },
+  set(t)        { localStorage.setItem('bz_access', t.access_token); localStorage.setItem('bz_refresh', t.refresh_token); },
+  clear()       { localStorage.removeItem('bz_access'); localStorage.removeItem('bz_refresh'); },
+};
+
+/* ════ API CLIENT ════ */
+class ApiError extends Error { constructor(status, msg){ super(msg); this.status = status; } }
+
+async function api(path, { method='GET', body=null, form=null, auth=true, _retry=false } = {}) {
+  const headers = {};
+  const opts = { method, headers };
+  if (form)            { opts.body = form; }                              // FormData: browser sets the boundary
+  else if (body != null){ headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  if (auth && Tok.access) headers['Authorization'] = 'Bearer ' + Tok.access;
+
+  let res;
+  try { res = await fetch(API_BASE + path, opts); }
+  catch (e) { throw new ApiError(0, 'Cannot reach the server at ' + API_BASE + '. Is it running?'); }
+
+  // Access token expired → try a single silent refresh, then retry the call
+  if (res.status === 401 && auth && !_retry && Tok.refresh) {
+    if (await tryRefresh()) return api(path, { method, body, form, auth, _retry:true });
+  }
+
+  if (!res.ok) {
+    let detail = res.statusText;
+    try { const j = await res.json(); detail = j.detail ?? detail; } catch {}
+    if (typeof detail !== 'string') detail = JSON.stringify(detail);
+    throw new ApiError(res.status, detail);
+  }
+  if (res.status === 204) return null;
+  const ct = res.headers.get('content-type') || '';
+  return ct.includes('application/json') ? res.json() : res.text();
+}
+
+async function tryRefresh() {
+  try {
+    const r = await fetch(API_BASE + '/auth/refresh', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ refresh_token: Tok.refresh }),
+    });
+    if (!r.ok) { Tok.clear(); return false; }
+    Tok.set(await r.json());
+    return true;
+  } catch { return false; }
+}
+
+/* Endpoint helpers — one per backend route we use */
+const Api = {
+  register:    (b)        => api('/auth/register',            { method:'POST', body:b, auth:false }),
+  login:       (b)        => api('/auth/login',               { method:'POST', body:b, auth:false }),
+  verifyEmail: (code)     => api('/auth/verify-email',        { method:'POST', body:{ code } }),
+  resend:      ()         => api('/auth/resend-verification', { method:'POST' }),
+  forgot:      (email)    => api('/auth/forgot-password',     { method:'POST', body:{ email }, auth:false }),
+  reset:       (b)        => api('/auth/reset-password',      { method:'POST', body:b, auth:false }),
+
+  me:          ()         => api('/users/me'),
+  updateMe:    (b)        => api('/users/me',  { method:'PUT', body:b }),
+  user:        (id)       => api('/users/' + id, { auth:false }),
+
+  browse:      (params={})=> { const q = new URLSearchParams(); for (const k in params) if (params[k]) q.set(k, params[k]); const s = q.toString(); return api('/listings' + (s ? '?'+s : ''), { auth:false }); },
+  getListing:  (id)       => api('/listings/' + id, { auth:false }),
+  myListings:  ()         => api('/listings/me'),
+  createListing:(b)       => api('/listings', { method:'POST', body:b }),
+  uploadListingImage:(id, file) => { const f = new FormData(); f.append('file', file); return api('/listings/' + id + '/images', { method:'POST', form:f }); },
+
+  listChats:   ()         => api('/chats'),
+  messages:    (id)       => api('/chats/' + id + '/messages'),
+  sendMessage: (id, content) => api('/chats/' + id + '/messages', { method:'POST', body:{ content } }),
+
+  createTransaction:(listing_id) => api('/transactions', { method:'POST', body:{ listing_id } }),
+  listTransactions: ()    => api('/transactions'),
+  getTransaction:   (id)  => api('/transactions/' + id),
+  updateTransaction:(id,b)=> api('/transactions/' + id, { method:'PUT', body:b }),
+
+  createReport:  (b)          => api('/reports', { method:'POST', body:b }),
+  getReports:    (status)     => api('/admin/reports' + (status ? '?status=' + status : '')),
+  resolveReport: (id, status) => api('/admin/reports/' + id + '/resolve', { method:'POST', body:{ status } }),
+  banUser:       (id, reason) => api('/admin/users/' + id + '/ban', { method:'POST', body:{ reason } }),
+};
+
+/* ════ APP STATE ════ */
+let ME = null;                 // current user (UserResponse)
+let CHAT_CACHE = {};           // chat_id -> { chat, other, listing, txn }
+let _allListings = [];         // last browse result
+let curChatId = null;
+let curTxnId  = null;
+let photoFile = null;          // selected listing image (File)
+let ws = null;                 // active chat WebSocket
+let renderedMsgIds = new Set();// message ids already on screen (dedupe live + REST)
+
+const val = id => document.getElementById(id).value.trim();
+function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function initials(name){ return (name || '?').trim().split(/\s+/).map(s => s[0]).slice(0,2).join('').toUpperCase(); }
+function cap(s){ return String(s || '').replace(/_/g,' ').replace(/\b\w/g, m => m.toUpperCase()); }
+function stars(avg){ const n = Math.round(Number(avg) || 0); return '★★★★★'.slice(0,n) + '☆☆☆☆☆'.slice(0,5-n); }
+function imgUrl(u){ return !u ? '' : (u.startsWith('http') ? u : API_BASE + u); }
+function money(l){
+  const f = v => '$' + Number(v).toFixed(0);
+  if (l.price_min != null && l.price_max != null) return f(l.price_min) + '–' + f(l.price_max);
+  if (l.price_min != null) return f(l.price_min) + '+';
+  if (l.price_max != null) return 'Up to ' + f(l.price_max);
+  return 'Negotiable';
+}
+const CAT_ICON = { Books:'📚', Electronics:'💻', Clothing:'👕', Furniture:'🪑', 'Art & Decor':'🎨', Services:'🛠', Other:'✨' };
+function iconFor(l){ return CAT_ICON[l && l.category] || '✨'; }
+function timeAgo(iso){
+  if (!iso) return '';
+  const d = new Date(iso), s = (Date.now() - d.getTime())/1000;
+  if (s < 60)    return 'just now';
+  if (s < 3600)  return Math.floor(s/60) + 'm ago';
+  if (s < 86400) return Math.floor(s/3600) + 'h ago';
+  return d.toLocaleDateString(undefined, { month:'short', day:'numeric' });
+}
+
+/* ════════════════════════════════════════════════════════════
+   AUTH
+════════════════════════════════════════════════════════════ */
+function showView(v){
+  ['login','register','verify','forgot'].forEach(x =>
+    document.getElementById('view-' + x).style.display = (x === v ? 'block' : 'none'));
+  hideAuthErr();
+}
+function authErr(msg){ const e = document.getElementById('authErr'); e.textContent = msg; e.classList.add('show'); }
+function hideAuthErr(){ document.getElementById('authErr').classList.remove('show'); }
+function showAuth(){ document.getElementById('authScreen').classList.remove('hidden'); showView('login'); }
+function hideAuth(){ document.getElementById('authScreen').classList.add('hidden'); }
+
+async function doLogin(){
+  hideAuthErr();
+  const email = val('li-email'), password = val('li-pw');
+  if (!email || !password) { authErr('Enter your email and password.'); return; }
+  try { Tok.set(await Api.login({ email, password })); await enterApp(); }
+  catch (e) { authErr(e.message); }
+}
+
+async function doRegister(){
+  hideAuthErr();
+  const full_name = val('re-name'), email = val('re-email'), password = val('re-pw');
+  if (!full_name || !email || !password) { authErr('Please fill in all fields.'); return; }
+  if (password.length < 8) { authErr('Password must be at least 8 characters.'); return; }
+  try {
+    await Api.register({ email, full_name, password, university:'Brown University' });
+    Tok.set(await Api.login({ email, password }));   // auto-login so we can verify the email
+    document.getElementById('ve-email').textContent = email;
+    document.getElementById('ve-devhint').style.display = 'inline';
+    showView('verify');
+  } catch (e) { authErr(e.message); }
+}
+
+async function doVerify(){
+  hideAuthErr();
+  const code = val('ve-code');
+  if (code.length !== 6) { authErr('Enter the 6-digit code.'); return; }
+  try { await Api.verifyEmail(code); await enterApp(); }
+  catch (e) { authErr(e.message); }
+}
+async function doResend(){ try { await Api.resend(); showToast('Code resent'); } catch (e) { authErr(e.message); } }
+
+async function doForgot(){
+  hideAuthErr();
+  const email = val('fp-email');
+  if (!email) { authErr('Enter your email.'); return; }
+  try { await Api.forgot(email); document.getElementById('fp-step2').style.display = 'block'; showToast('If that email is registered, a code was sent'); }
+  catch (e) { authErr(e.message); }
+}
+async function doReset(){
+  hideAuthErr();
+  const email = val('fp-email'), code = val('fp-code'), new_password = val('fp-pw');
+  if (code.length !== 6 || !new_password) { authErr('Enter the code and a new password.'); return; }
+  try { await Api.reset({ email, code, new_password }); showToast('Password updated — please sign in'); showView('login'); }
+  catch (e) { authErr(e.message); }
+}
+
+function signOut(){ Tok.clear(); ME = null; CHAT_CACHE = {}; _allListings = []; showAuth(); showToast('Signed out'); }
+
+async function enterApp(){
+  try { ME = await Api.me(); }
+  catch (e) { Tok.clear(); showAuth(); authErr('Session expired — please sign in.'); return; }
+  hideAuth();
+  switchScreen('request');                       // land on Browse
+  await Promise.all([ loadListings(), loadProfile(), loadChats() ]);
+}
+
+/* ════════════════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════════════════ */
+function switchScreen(name){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nbtn').forEach(b => b.classList.remove('on'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const nav = document.getElementById('nav-' + name);
+  if (nav) nav.classList.add('on');
+  if (name === 'profile')       loadProfile();
+  if (name === 'transactions')  loadChats();
+}
+
+function pickChip(el){
+  el.closest('.chips').querySelectorAll('.chip').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function chosenChip(containerId){
+  const el = document.querySelector('#' + containerId + ' .chip.sel');
+  return el ? el.textContent.trim() : null;
+}
+
+/* ════════════════════════════════════════════════════════════
+   BROWSE  (Available Now + Open Requests)
+════════════════════════════════════════════════════════════ */
+async function loadListings(q=''){
+  try {
+    _allListings = await Api.browse(q ? { q } : {});
+    renderSells(_allListings.filter(l => l.type === 'sell'));
+    renderReqs(_allListings.filter(l => l.type === 'request'));
+  } catch (e) { showToast(e.message); }
+}
+
+let _searchTimer;
+function filterL(q){ clearTimeout(_searchTimer); _searchTimer = setTimeout(() => loadListings(q), 300); }
+
+function renderSells(arr){
+  const c = document.getElementById('lcont');
+  if (!arr.length) {
+    c.innerHTML = `<div style="text-align:center;padding:32px 20px;">
+      <div style="font-size:44px;margin-bottom:12px;">🔍</div>
+      <div style="font:800 16px var(--font);color:var(--txt1);margin-bottom:6px;">No listings yet</div>
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:14px;">Be the first to post something, or make a request.</div>
+      <button class="btn btn-p" style="max-width:180px;margin:0 auto;" onclick="toggleRform()">Make a Request</button>
+    </div>`;
+    return;
+  }
+  c.innerHTML = arr.map(l => {
+    const mine  = ME && l.seller_id === ME.user_id;
+    const thumb = imgUrl(l.thumbnail_url);
+    const click = mine ? `showToast('This is your listing')` : `startChat('${l.listing_id}')`;
+    return `<div class="lcard" onclick="${click}">
+      <div class="limg">${thumb ? `<img src="${thumb}" alt="" onerror="this.replaceWith(document.createTextNode('${iconFor(l)}'))">` : iconFor(l)}</div>
+      <div class="lbody">
+        <div class="ltitle">${esc(l.title)}</div>
+        <div class="ldesc">${esc(l.description || '')}</div>
+        <div class="lfoot"><div class="lprice">${money(l)}</div><span class="tag t-sell">${mine ? 'YOURS' : 'FOR SALE'}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderReqs(arr){
+  const c = document.getElementById('reqcont');
+  if (!arr.length) { c.innerHTML = `<div style="font-size:13px;color:var(--txt3);text-align:center;padding:18px;">No open requests yet.</div>`; return; }
+  c.innerHTML = arr.map(l => {
+    const mine = ME && l.seller_id === ME.user_id;
+    const click = mine ? `showToast('This is your request')` : `startChat('${l.listing_id}')`;
+    return `<div class="rcard">
+      <div class="rcard-top"><span class="rcard-title">${esc(l.title)}</span><span class="tag t-want">WANT</span></div>
+      <div class="rcard-desc">${esc(l.description || '')}</div>
+      <div class="rcard-foot">
+        <span class="rcard-budget">Budget: ${money(l)}</span>
+        <button class="btn btn-p btn-sm" onclick="${click}">${mine ? 'Yours' : 'I Have This'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* Tap a listing → open (or create) a transaction + chat with the seller */
+async function startChat(listingId){
+  try {
+    const txn = await Api.createTransaction(listingId);
+    await loadChats();
+    const entry = Object.values(CHAT_CACHE).find(e => e.chat.transaction_id === txn.transaction_id);
+    switchScreen('transactions');
+    if (entry) openChat(entry.chat.chat_id);
+  } catch (e) { showToast(e.message); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   POST LISTING
+════════════════════════════════════════════════════════════ */
+const CONDITION_MAP = { 'New':'new', 'Like New':'like_new', 'Good':'good', 'Fair':'fair' };
+
+function tapPhoto(){ document.getElementById('photoInput').click(); }
+function onPhotoPicked(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  photoFile = file;
+  const pu = document.getElementById('pu');
+  const url = URL.createObjectURL(file);
+  pu.style.cssText = 'border:none;overflow:hidden;';
+  pu.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:calc(var(--radius)-2px);">
+    <div class="pu-overlay" style="border-radius:calc(var(--radius)-2px);">📷 Change Photo</div>`;
+}
+
+async function postListing(){
+  const title = val('iname');
+  if (!title) { showToast('Add an item name first'); return; }
+  const catRaw  = chosenChip('catChips');
+  const category = catRaw ? catRaw.replace(/^[^\p{L}]+/u, '').trim() : null;   // strip leading emoji
+  const condTxt = chosenChip('condChips');
+  const pmin = document.getElementById('priceMin').value;
+  const pmax = document.getElementById('priceMax').value;
+  const body = {
+    type: 'sell',
+    title,
+    description: document.getElementById('idesc').value.trim() || null,
+    category,
+    condition: condTxt ? CONDITION_MAP[condTxt] : null,
+    price_min: pmin !== '' ? Number(pmin) : null,
+    price_max: pmax !== '' ? Number(pmax) : null,
+  };
+  try {
+    const listing = await Api.createListing(body);
+    if (photoFile) { try { await Api.uploadListingImage(listing.listing_id, photoFile); } catch {} }
+    document.getElementById('modal').classList.add('open');
+    await Promise.all([ loadListings(), loadProfile() ]);
+  } catch (e) { showToast(e.message); }
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('iname').value = '';
+  document.getElementById('idesc').value = '';
+  document.getElementById('priceMin').value = '';
+  document.getElementById('priceMax').value = '';
+  photoFile = null;
+  const pu = document.getElementById('pu');
+  pu.style.cssText = '';
+  pu.innerHTML = `<div class="pu-ico" id="puIco">📷</div><div class="pu-lbl">Add Photos</div><div class="pu-hint">Tap to take or choose from library</div><div class="pu-overlay" id="puOv">📷 Change Photo</div>`;
+  switchScreen('request');
+}
+
+/* ════════════════════════════════════════════════════════════
+   REQUESTS
+════════════════════════════════════════════════════════════ */
+function toggleRform(){
+  const f = document.getElementById('rform');
+  f.classList.toggle('open');
+  if (f.classList.contains('open')) f.scrollIntoView({ behavior:'smooth' });
+}
+async function submitReq(){
+  const title = val('rqTitle');
+  if (!title) { showToast('What are you looking for?'); return; }
+  const pmin = document.getElementById('rqMin').value;
+  const pmax = document.getElementById('rqMax').value;
+  try {
+    await Api.createListing({
+      type: 'request',
+      title,
+      description: document.getElementById('rqDesc').value.trim() || null,
+      price_min: pmin !== '' ? Number(pmin) : null,
+      price_max: pmax !== '' ? Number(pmax) : null,
+    });
+    document.getElementById('rqTitle').value = '';
+    document.getElementById('rqDesc').value  = '';
+    document.getElementById('rqMin').value   = '';
+    document.getElementById('rqMax').value   = '';
+    toggleRform();
+    showToast('Request posted!');
+    await loadListings();
+  } catch (e) { showToast(e.message); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   PROFILE
+════════════════════════════════════════════════════════════ */
+async function loadProfile(){
+  if (!ME) return;
+  ME = await Api.me().catch(() => ME);
+  const av = document.getElementById('pAv');
+  if (ME.profile_picture_url) { av.innerHTML = `<img src="${imgUrl(ME.profile_picture_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`; }
+  else { av.textContent = initials(ME.full_name); }
+  document.getElementById('pName').textContent = ME.full_name;
+  document.getElementById('pUni').innerHTML  = '🐻 ' + esc(ME.university || 'Brown University');
+  const rc = ME.rating_count || 0;
+  document.getElementById('pRat').innerHTML = `<span class="stars">${stars(ME.rating_avg)}</span> ${Number(ME.rating_avg).toFixed(1)} &nbsp;·&nbsp; ${rc} review${rc === 1 ? '' : 's'}`;
+  document.getElementById('pBio').textContent = ME.bio || 'No bio yet — tap Edit to add one.';
+  document.getElementById('stSold').textContent = ME.transactions_completed;
+  document.getElementById('adminRow').style.display = ME.is_admin ? 'flex' : 'none';
+
+  // My listings — dedicated endpoint returns every status (active, sold, removed…)
+  let mine = [];
+  try { mine = await Api.myListings(); } catch {}
+  const active = mine.filter(l => l.status !== 'removed' && l.status !== 'sold');
+  document.getElementById('stListed').textContent = active.length;
+  renderMyListings(mine);
+
+  // Earned = sum of my completed sales
+  try {
+    const txns = await Api.listTransactions();
+    const earned = txns
+      .filter(t => t.seller_id === ME.user_id && t.status === 'completed' && t.agreed_price)
+      .reduce((a, t) => a + Number(t.agreed_price), 0);
+    document.getElementById('stEarned').textContent = '$' + earned.toFixed(0);
+  } catch {}
+}
+
+function renderMyListings(arr){
+  const c = document.getElementById('myListings');
+  const active = arr.filter(l => l.status !== 'removed' && l.status !== 'sold');
+  if (!active.length) { c.innerHTML = `<div style="font-size:13px;color:var(--txt3);padding:6px 0 4px;">No active listings. Tap + New to post one.</div>`; return; }
+  c.innerHTML = active.map(l => {
+    const thumb = imgUrl(l.thumbnail_url);
+    return `<div class="lcard">
+      <div class="limg">${thumb ? `<img src="${thumb}" alt="">` : iconFor(l)}</div>
+      <div class="lbody">
+        <div class="ltitle">${esc(l.title)}</div>
+        <div class="ldesc">${esc(l.description || '')}</div>
+        <div class="lfoot"><div class="lprice">${money(l)}</div><span class="tag ${l.type === 'request' ? 't-want' : 't-sell'}">${l.type === 'request' ? 'REQUEST' : 'FOR SALE'}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function editBio(){
+  const bio = prompt('Update your bio:', ME && ME.bio || '');
+  if (bio === null) return;
+  try { ME = await Api.updateMe({ bio }); loadProfile(); showToast('Profile updated'); }
+  catch (e) { showToast(e.message); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   CHATS  (list + thread)
+════════════════════════════════════════════════════════════ */
+async function loadChats(){
+  let chats = [];
+  try { chats = await Api.listChats(); } catch (e) { return; }
+  CHAT_CACHE = {};
+  await Promise.all(chats.map(async chat => {
+    const otherId = chat.participant_1 === ME.user_id ? chat.participant_2 : chat.participant_1;
+    let other = null, listing = null, txn = null;
+    try { other   = await Api.user(otherId); } catch {}
+    try { if (chat.listing_id)     listing = await Api.getListing(chat.listing_id); } catch {}
+    try { if (chat.transaction_id) txn     = await Api.getTransaction(chat.transaction_id); } catch {}
+    CHAT_CACHE[chat.chat_id] = { chat, other, listing, txn };
+  }));
+  renderChatList();
+}
+
+function renderChatList(){
+  const c = document.getElementById('chatList');
+  const entries = Object.values(CHAT_CACHE).sort((a,b) => new Date(b.chat.created_at) - new Date(a.chat.created_at));
+  document.getElementById('tab-a').textContent = `Active (${entries.length})`;
+  if (!entries.length) {
+    c.innerHTML = `<div style="padding:44px 20px;text-align:center;color:var(--txt3);">
+      <div style="font-size:42px;margin-bottom:10px;">💬</div>
+      <div style="font-size:13px;">No chats yet. Tap a listing in Browse to start one.</div></div>`;
+    return;
+  }
+  c.innerHTML = entries.map(({ chat, other, listing, txn }) => {
+    const locked  = txn && txn.status !== 'negotiating';
+    const name    = other ? other.full_name : 'Anonymous';
+    const item    = listing ? listing.title : 'Listing';
+    const preview = locked
+      ? `🔒 ${cap(txn.status)}${txn.agreed_price ? ' · $' + Number(txn.agreed_price).toFixed(0) : ''}`
+      : 'About: ' + item;
+    return `<div class="cli" onclick="openChat('${chat.chat_id}')">
+      <div class="av av-b">${initials(name)}</div>
+      <div class="cm">
+        <div class="cnr"><span class="cn">${esc(name)}</span><span class="ct">${timeAgo(chat.created_at)}</span></div>
+        <div class="cpr"><span class="cp"${locked ? ' style="color:#16A34A;font-weight:600;"' : ''}>${esc(preview)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openChat(chatId){
+  const entry = CHAT_CACHE[chatId];
+  if (!entry) { showToast('Chat not found'); return; }
+  curChatId = chatId;
+  const { chat, other, listing, txn } = entry;
+  curTxnId = chat.transaction_id;
+
+  const name = other ? other.full_name : 'Anonymous';
+  const item = listing ? listing.title : 'Listing';
+  const locked = txn && txn.status !== 'negotiating';
+
+  document.getElementById('cName').textContent = name;
+  document.getElementById('cSub').textContent  = (locked ? '🔒 ' + cap(txn.status) : 'Negotiating') + ' · ' + item;
+  document.getElementById('cAv').textContent   = initials(name);
+  document.getElementById('cAv').className     = 'chdr-av av-b';
+  document.getElementById('iIco').textContent  = iconFor(listing);
+  document.getElementById('iName').textContent = item;
+  document.getElementById('iDesc').textContent = listing ? [cap(listing.condition), listing.category].filter(Boolean).join(' · ') : '';
+  const ip = document.getElementById('iPrice');
+  ip.textContent = (txn && txn.agreed_price) ? '$' + Number(txn.agreed_price).toFixed(0) : (listing ? money(listing) : '—');
+  ip.className = 'ibanner-price' + (locked ? ' locked' : '');
+
+  const area = document.getElementById('msgs');
+  area.innerHTML = `<div class="mtime">Loading…</div>`;
+  document.getElementById('chatOverlay').classList.add('open');
+  try { renderMessages(await Api.messages(chatId)); }
+  catch (e) { area.innerHTML = `<div class="mtime">${esc(e.message)}</div>`; }
+  openSocket(chatId);
+
+  // Only the seller can lock the price, and only while still negotiating
+  const canLock = txn && txn.status === 'negotiating' && ME.user_id === txn.seller_id;
+  document.getElementById('lockDiv').style.display = canLock ? 'block' : 'none';
+}
+
+function renderMessages(msgs){
+  const area = document.getElementById('msgs');
+  renderedMsgIds = new Set(msgs.map(m => m.message_id));
+  if (!msgs.length) { area.innerHTML = `<div class="mtime">Say hello 👋</div>`; return; }
+  area.innerHTML = msgs.map(m =>
+    `<div class="msg ${m.sender_id === ME.user_id ? 'me' : 'them'}">${esc(m.content)}</div>`).join('');
+  area.scrollTop = area.scrollHeight;
+}
+
+function appendIncoming(m){
+  if (!m || !m.message_id || renderedMsgIds.has(m.message_id)) return;
+  renderedMsgIds.add(m.message_id);
+  const area = document.getElementById('msgs');
+  // clear the "Say hello"/loading placeholder, if present
+  const only = area.children.length === 1 ? area.firstElementChild : null;
+  if (only && only.classList.contains('mtime')) area.innerHTML = '';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg ' + (m.sender_id === ME.user_id ? 'me' : 'them');
+  bubble.textContent = m.content;
+  area.appendChild(bubble);
+  area.scrollTop = area.scrollHeight;
+}
+
+/* Live updates: one WebSocket per open chat. */
+function openSocket(chatId){
+  closeSocket();
+  if (!Tok.access) return;
+  try {
+    ws = new WebSocket(`${WS_BASE}/ws/chats/${chatId}?token=${encodeURIComponent(Tok.access)}`);
+    ws.onmessage = (ev) => { try { appendIncoming(JSON.parse(ev.data)); } catch {} };
+    ws.onclose   = () => { ws = null; };
+    ws.onerror   = () => {};
+  } catch {}
+}
+function closeSocket(){
+  if (ws) { try { ws.close(); } catch {} ws = null; }
+}
+
+function closeChat(){ closeSocket(); document.getElementById('chatOverlay').classList.remove('open'); }
+
+async function sendMsg(){
+  const inp = document.getElementById('cinp');
+  const txt = inp.value.trim();
+  if (!txt || !curChatId) return;
+  inp.value = '';
+  // Prefer the live socket — the server echoes the saved message back to render it.
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ content: txt }));
+    return;
+  }
+  // Fallback when there's no socket: REST POST with an optimistic bubble.
+  const area = document.getElementById('msgs');
+  const bubble = document.createElement('div');
+  bubble.className = 'msg me';
+  bubble.textContent = txt;
+  area.appendChild(bubble);
+  area.scrollTop = area.scrollHeight;
+  try { await Api.sendMessage(curChatId, txt); }
+  catch (e) { bubble.style.opacity = .5; showToast(e.message); }
+}
+
+async function lockPrice(){
+  if (!curTxnId) { showToast('No transaction on this chat'); return; }
+  try {
+    const updated = await Api.updateTransaction(curTxnId, { status:'price_locked' });
+    if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = updated;
+    document.getElementById('lockDiv').style.display = 'none';
+    document.getElementById('iPrice').className = 'ibanner-price locked';
+    const item = CHAT_CACHE[curChatId] && CHAT_CACHE[curChatId].listing ? CHAT_CACHE[curChatId].listing.title : '';
+    document.getElementById('cSub').textContent = '🔒 Price Locked · ' + item;
+    const area = document.getElementById('msgs');
+    const s = document.createElement('div');
+    s.className = 'sysmsg';
+    s.textContent = '🔒 Price locked · Arrange delivery';
+    area.appendChild(s);
+    area.scrollTop = area.scrollHeight;
+    showToast('Price locked!');
+    renderChatList();
+  } catch (e) { showToast(e.message); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   COMPLETED TRANSACTIONS TAB
+════════════════════════════════════════════════════════════ */
+function switchTab(t){
+  document.getElementById('tab-a').classList.toggle('on', t === 'a');
+  document.getElementById('tab-d').classList.toggle('on', t === 'd');
+  document.getElementById('tA').style.display = t === 'a' ? 'block' : 'none';
+  document.getElementById('tD').style.display = t === 'd' ? 'block' : 'none';
+  if (t === 'd') loadCompleted();
+}
+
+async function loadCompleted(){
+  const c = document.getElementById('completedList');
+  c.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt3);font-size:13px;">Loading…</div>`;
+  try {
+    const done = (await Api.listTransactions()).filter(t => t.status === 'completed');
+    if (!done.length) {
+      c.innerHTML = `<div style="padding:36px 20px;text-align:center;color:var(--txt3);">
+        <div style="font-size:40px;margin-bottom:10px;">🤝</div>
+        <div style="font-size:13px;">Your completed transactions appear here</div></div>`;
+      return;
+    }
+    c.innerHTML = done.map(t => {
+      const sold = t.seller_id === ME.user_id;
+      const amt  = t.agreed_price ? '$' + Number(t.agreed_price).toFixed(0) : '';
+      return `<div class="cli">
+        <div class="av" style="background:var(--border);color:var(--txt2);">${sold ? 'S' : 'B'}</div>
+        <div class="cm">
+          <div class="cnr"><span class="cn">${sold ? 'Sold' : 'Bought'}</span><span class="ct">${timeAgo(t.completed_at || t.created_at)}</span></div>
+          <div class="cpr"><span class="cp">Transaction</span><span class="tag ${sold ? 't-sell' : 't-want'}" style="font-size:10px;">${sold ? '+' : '-'}${amt}</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) { c.innerHTML = `<div style="padding:20px;color:var(--txt3);font-size:13px;">${esc(e.message)}</div>`; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   MODERATION  (report a user + admin review panel)
+════════════════════════════════════════════════════════════ */
+async function reportCurrentChat(){
+  const entry = curChatId && CHAT_CACHE[curChatId];
+  if (!entry || !entry.other) { showToast('Open a chat to report someone'); return; }
+  const reason = prompt("Report this user — what's wrong?\n(e.g. spam, scam, harassment)");
+  if (!reason || !reason.trim()) return;
+  try {
+    await Api.createReport({ reported_user_id: entry.other.user_id, reason: reason.trim() });
+    showToast('Report submitted — thanks');
+  } catch (e) { showToast(e.message); }
+}
+
+function openAdmin(){ document.getElementById('adminOverlay').classList.add('open'); loadAdminReports(); }
+function closeAdmin(){ document.getElementById('adminOverlay').classList.remove('open'); }
+
+async function loadAdminReports(){
+  const body = document.getElementById('adminBody');
+  body.innerHTML = `<div style="padding:20px;color:var(--txt3);font-size:13px;">Loading…</div>`;
+  let reports;
+  try { reports = await Api.getReports('pending'); }
+  catch (e) { body.innerHTML = `<div style="padding:20px;color:var(--txt3);font-size:13px;">${esc(e.message)}</div>`; return; }
+  if (!reports.length) {
+    body.innerHTML = `<div style="padding:48px 20px;text-align:center;color:var(--txt3);">
+      <div style="font-size:42px;margin-bottom:10px;">✅</div>
+      <div style="font-size:13px;">No pending reports.</div></div>`;
+    return;
+  }
+  const cards = await Promise.all(reports.map(async r => {
+    let who = 'Unknown', banBtn = '';
+    if (r.reported_user_id) {
+      try { const u = await Api.user(r.reported_user_id); who = esc(u.full_name) + ' · ' + esc(u.email); }
+      catch { who = r.reported_user_id; }
+      banBtn = `<button class="btn btn-sm" style="background:#EF4444;color:#fff;" onclick="adminBan('${r.reported_user_id}','${r.report_id}')">Ban user</button>`;
+    } else if (r.reported_listing_id) {
+      who = 'Listing ' + r.reported_listing_id.slice(0, 8);
+    }
+    return `<div class="card" style="margin-bottom:10px;">
+      <div style="font:700 14px var(--font);color:var(--txt1);">${who}</div>
+      <div style="font-size:12px;color:var(--txt3);margin:3px 0 4px;">${timeAgo(r.created_at)} · reason: <b>${esc(r.reason)}</b></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn btn-o btn-sm" onclick="adminDismiss('${r.report_id}')">Dismiss</button>
+        ${banBtn}
+      </div>
+    </div>`;
+  }));
+  body.innerHTML = cards.join('');
+}
+
+async function adminDismiss(reportId){
+  try { await Api.resolveReport(reportId, 'dismissed'); showToast('Report dismissed'); loadAdminReports(); }
+  catch (e) { showToast(e.message); }
+}
+async function adminBan(userId, reportId){
+  const reason = prompt('Ban reason? (kept in moderation records)');
+  if (reason === null) return;
+  try {
+    await Api.banUser(userId, reason || 'Violated marketplace rules');
+    await Api.resolveReport(reportId, 'resolved');
+    showToast('User banned');
+    loadAdminReports();
+  } catch (e) { showToast(e.message); }
+}
+
+/* ════ TOAST ════ */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* ════ INIT ════ */
+document.getElementById('cinp').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+document.getElementById('ve-code').addEventListener('keydown', e => { if (e.key === 'Enter') doVerify(); });
+document.getElementById('li-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+(async function boot(){
+  if (Tok.access) await enterApp();
+  else showAuth();
+})();
+</script>
+</body>
+</html>
