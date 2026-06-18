@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     secret_key:                str = "change-me-before-deploying"
     access_token_ttl_minutes:  int = 60 * 24 * 7   # 7 days
     refresh_token_ttl_days:    int = 30
+    # Comma-separated email domains allowed to register (university gating).
+    # Set to "" to allow any domain.
+    allowed_email_domains:     str = "brown.edu"
 
     # ── Email (SMTP) ──────────────────────────────────────────────────────────
     # Dev: leave smtp_host blank — codes print to the server console instead.

@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from db.models import Listing, ListingStatus, ListingType, User
-from server.dependencies import get_current_user, get_db
+from server.dependencies import get_verified_user, get_db
 from server.schemas import CreateListingRequest, ListingResponse, UpdateListingRequest
 from server.storage import save_image
 
@@ -34,7 +34,7 @@ def browse(
 @router.post("", response_model=ListingResponse, status_code=201)
 def create_listing(
     body:         CreateListingRequest,
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     listing = Listing(**body.model_dump(), seller_id=current_user.user_id)
@@ -49,7 +49,7 @@ def create_listing(
 @router.get("/me", response_model=List[ListingResponse])
 def my_listings(
     status:       Optional[ListingStatus] = Query(None, description="Filter by status; omit for all"),
-    current_user: User                    = Depends(get_current_user),
+    current_user: User                    = Depends(get_verified_user),
     db:           Session                 = Depends(get_db),
 ):
     """All of the current user's listings (any status), newest first."""
@@ -71,7 +71,7 @@ def get_listing(listing_id: str, db: Session = Depends(get_db)):
 def update_listing(
     listing_id:   str,
     body:         UpdateListingRequest,
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     listing = _get_or_404(listing_id, db)
@@ -86,7 +86,7 @@ def update_listing(
 @router.delete("/{listing_id}", status_code=204)
 def delete_listing(
     listing_id:   str,
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     listing = _get_or_404(listing_id, db)
@@ -99,7 +99,7 @@ def delete_listing(
 async def upload_image(
     listing_id:   str,
     file:         UploadFile = File(...),
-    current_user: User       = Depends(get_current_user),
+    current_user: User       = Depends(get_verified_user),
     db:           Session    = Depends(get_db),
 ):
     listing = _get_or_404(listing_id, db)

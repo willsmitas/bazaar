@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from config import settings
 from db.models import User
 from server.dependencies import get_current_user, get_db
 from server.email import send_reset_code, send_verification_code
@@ -33,6 +34,13 @@ _OTP_TTL = timedelta(minutes=15)
 @router.post("/register", response_model=UserResponse, status_code=201)
 def register(body: RegisterRequest, db: Session = Depends(get_db)):
     """Create an account and send a verification code to the email address."""
+    allowed = {d.strip().lower() for d in settings.allowed_email_domains.split(",") if d.strip()}
+    domain = body.email.rsplit("@", 1)[-1].lower()
+    if allowed and domain not in allowed:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Registration is limited to {', '.join(sorted(allowed))} email addresses",
+        )
     if db.query(User).filter(User.email == body.email).first():
         raise HTTPException(status_code=409, detail="Email already registered")
 

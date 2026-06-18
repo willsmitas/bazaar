@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from db.models import Chat, Listing, ListingStatus, Transaction, TxnStatus, User
-from server.dependencies import get_current_user, get_db
+from server.dependencies import get_verified_user, get_db
 from server.schemas import (
     CreateTransactionRequest,
     TransactionResponse,
@@ -28,7 +28,7 @@ _TRANSITIONS: dict[TxnStatus, set[TxnStatus]] = {
 @router.post("", response_model=TransactionResponse, status_code=201)
 def create_transaction(
     body:         CreateTransactionRequest,
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     listing = db.query(Listing).filter(Listing.listing_id == body.listing_id).first()
@@ -62,7 +62,7 @@ def create_transaction(
 
 @router.get("", response_model=List[TransactionResponse])
 def list_transactions(
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     return (
@@ -79,7 +79,7 @@ def list_transactions(
 @router.get("/{txn_id}", response_model=TransactionResponse)
 def get_transaction(
     txn_id:       str,
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     txn = _get_or_404(txn_id, db)
@@ -91,7 +91,7 @@ def get_transaction(
 def update_transaction(
     txn_id:       str,
     body:         UpdateTransactionRequest,
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     txn = _get_or_404(txn_id, db)
@@ -103,6 +103,8 @@ def update_transaction(
 
     if body.status is not None:
         _validate_transition(txn.status, body.status)
+        if body.status == TxnStatus.price_locked and txn.agreed_price is None:
+            raise HTTPException(status_code=400, detail="Set an agreed price before locking the deal")
         txn.status = body.status
 
         if body.status == TxnStatus.price_locked:

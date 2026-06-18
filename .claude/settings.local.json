@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(py _phase1_test.py)"
+    ]
+  }
+}

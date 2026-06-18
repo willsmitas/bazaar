@@ -3,7 +3,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from db.models import Rating, Transaction, TxnStatus, User
-from server.dependencies import get_current_user, get_db
+from server.dependencies import get_verified_user, get_db
 from server.schemas import CreateRatingRequest, RatingResponse
 
 router = APIRouter(prefix="/ratings", tags=["ratings"])
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/ratings", tags=["ratings"])
 @router.post("", response_model=RatingResponse, status_code=201)
 def create_rating(
     body:         CreateRatingRequest,
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     txn = db.query(Transaction).filter(Transaction.transaction_id == body.transaction_id).first()

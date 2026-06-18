@@ -446,7 +446,8 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
       <div class="msgs" id="msgs"></div>
 
       <div id="lockDiv" style="padding:0 14px 6px;flex-shrink:0;display:none;">
-        <button class="btn btn-g" style="font-size:14px;" onclick="lockPrice()">🔒 Lock in this price — Accept &amp; Deliver</button>
+        <button class="btn btn-o" id="setPriceBtn" style="font-size:13px;margin-bottom:6px;" onclick="proposePrice()">💵 Set / propose price</button>
+        <button class="btn btn-g" id="lockPriceBtn" style="font-size:14px;display:none;" onclick="acceptPrice()">🔒 Accept &amp; lock</button>
       </div>
 
       <div class="cinbar">
@@ -928,6 +929,14 @@ function signOut(){ Tok.clear(); ME = null; CHAT_CACHE = {}; _allListings = []; 
 async function enterApp(){
   try { ME = await Api.me(); }
   catch (e) { Tok.clear(); showAuth(); authErr('Session expired — please sign in.'); return; }
+  if (!ME.email_verified) {                       // must verify before using the app
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('ve-email').textContent = ME.email;
+    document.getElementById('ve-devhint').style.display = 'inline';
+    showView('verify');
+    try { await Api.resend(); } catch {}
+    return;
+  }
   hideAuth();
   switchScreen('request');                       // land on Browse
   await Promise.all([ loadListings(), loadProfile(), loadChats() ]);
@@ -1241,9 +1250,7 @@ async function openChat(chatId){
   catch (e) { area.innerHTML = `<div class="mtime">${esc(e.message)}</div>`; }
   openSocket(chatId);
 
-  // Only the seller can lock the price, and only while still negotiating
-  const canLock = txn && txn.status === 'negotiating' && ME.user_id === txn.seller_id;
-  document.getElementById('lockDiv').style.display = canLock ? 'block' : 'none';
+  renderPriceControls(txn);
 }
 
 function renderMessages(msgs){
@@ -1267,6 +1274,7 @@ function appendIncoming(m){
   bubble.textContent = m.content;
   area.appendChild(bubble);
   area.scrollTop = area.scrollHeight;
+  if (/💵|🔒/.test(m.content)) refreshOpenTxn();   // a price was proposed/locked → resync
 }
 
 /* Live updates: one WebSocket per open chat. */
@@ -1307,24 +1315,78 @@ async function sendMsg(){
   catch (e) { bubble.style.opacity = .5; showToast(e.message); }
 }
 
-async function lockPrice(){
-  if (!curTxnId) { showToast('No transaction on this chat'); return; }
+function renderPriceControls(txn){
+  const div = document.getElementById('lockDiv');
+  const lockBtn = document.getElementById('lockPriceBtn');
+  if (!txn || txn.status !== 'negotiating') { div.style.display = 'none'; return; }
+  div.style.display = 'block';
+  if (txn.agreed_price != null) {
+    lockBtn.style.display = 'block';
+    lockBtn.textContent = `🔒 Accept & lock at $${Number(txn.agreed_price).toFixed(0)}`;
+  } else {
+    lockBtn.style.display = 'none';
+  }
+}
+
+function updateBannerPrice(txn){
+  const ip = document.getElementById('iPrice');
+  if (txn && txn.agreed_price != null) ip.textContent = '$' + Number(txn.agreed_price).toFixed(0);
+  ip.className = 'ibanner-price' + (txn && txn.status !== 'negotiating' ? ' locked' : '');
+}
+
+// Send arbitrary content (price announcements) over the socket, REST as fallback.
+function sendContent(text){
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ content: text }));
+  else if (curChatId) Api.sendMessage(curChatId, text).catch(() => {});
+}
+
+async function proposePrice(){
+  if (!curTxnId) return;
+  const entry = CHAT_CACHE[curChatId];
+  const cur = entry && entry.txn ? entry.txn.agreed_price : null;
+  const input = prompt('Propose a price ($):', cur != null ? Number(cur).toFixed(0) : '');
+  if (input === null) return;
+  const amt = Number(input);
+  if (!(amt > 0)) { showToast('Enter a valid dollar amount'); return; }
   try {
-    const updated = await Api.updateTransaction(curTxnId, { status:'price_locked' });
-    if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = updated;
-    document.getElementById('lockDiv').style.display = 'none';
-    document.getElementById('iPrice').className = 'ibanner-price locked';
-    const item = CHAT_CACHE[curChatId] && CHAT_CACHE[curChatId].listing ? CHAT_CACHE[curChatId].listing.title : '';
+    const txn = await Api.updateTransaction(curTxnId, { agreed_price: amt });
+    if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = txn;
+    renderPriceControls(txn);
+    updateBannerPrice(txn);
+    sendContent(`💵 Proposed $${amt.toFixed(0)} — tap "Accept & lock" to confirm.`);
+    showToast('Price proposed');
+  } catch (e) { showToast(e.message); }
+}
+
+async function acceptPrice(){
+  if (!curTxnId) return;
+  try {
+    const txn = await Api.updateTransaction(curTxnId, { status: 'price_locked' });
+    if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = txn;
+    updateBannerPrice(txn);
+    renderPriceControls(txn);
+    const item = (CHAT_CACHE[curChatId] && CHAT_CACHE[curChatId].listing) ? CHAT_CACHE[curChatId].listing.title : '';
     document.getElementById('cSub').textContent = '🔒 Price Locked · ' + item;
-    const area = document.getElementById('msgs');
-    const s = document.createElement('div');
-    s.className = 'sysmsg';
-    s.textContent = '🔒 Price locked · Arrange delivery';
-    area.appendChild(s);
-    area.scrollTop = area.scrollHeight;
+    const fee = txn.commission_amount;
+    sendContent(`🔒 Locked at $${Number(txn.agreed_price).toFixed(0)}` + (fee ? ` · app fee $${Number(fee).toFixed(2)}` : ''));
     showToast('Price locked!');
     renderChatList();
   } catch (e) { showToast(e.message); }
+}
+
+// A price message arrived → re-fetch the transaction so both sides stay in sync.
+async function refreshOpenTxn(){
+  if (!curChatId || !curTxnId) return;
+  try {
+    const txn = await Api.getTransaction(curTxnId);
+    if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = txn;
+    renderPriceControls(txn);
+    updateBannerPrice(txn);
+    if (txn.status !== 'negotiating') {
+      const item = (CHAT_CACHE[curChatId] && CHAT_CACHE[curChatId].listing) ? CHAT_CACHE[curChatId].listing.title : '';
+      document.getElementById('cSub').textContent = '🔒 ' + cap(txn.status) + ' · ' + item;
+    }
+  } catch {}
 }
 
 /* ════════════════════════════════════════════════════════════
