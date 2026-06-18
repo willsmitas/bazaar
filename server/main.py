@@ -29,12 +29,16 @@ app = FastAPI(
 
 # CORS — parse the comma-separated CORS_ORIGINS setting
 _origins = ["*"] if settings.cors_origins.strip() == "*" else [
-    o.strip() for o in settings.cors_origins.split(",")
+    o.strip() for o in settings.cors_origins.split(",") if o.strip()
 ]
+# A wildcard origin with credentials is rejected by browsers and disallowed by
+# the CORS spec. Bazaar authenticates with Bearer tokens (not cookies), so we
+# only enable credentials when origins are explicitly listed.
+_allow_credentials = _origins != ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
-    allow_credentials=True,
+    allow_credentials=_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )

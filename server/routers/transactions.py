@@ -98,6 +98,9 @@ def update_transaction(
     _assert_participant(txn, current_user)
 
     if body.agreed_price is not None:
+        # The price is only negotiable before it's locked; afterwards it's fixed.
+        if txn.status != TxnStatus.negotiating:
+            raise HTTPException(status_code=400, detail="Price can only be changed while negotiating")
         txn.agreed_price      = body.agreed_price
         txn.commission_amount = txn.compute_commission()
 
@@ -109,10 +112,11 @@ def update_transaction(
 
         if body.status == TxnStatus.price_locked:
             txn.price_locked_at = datetime.now(timezone.utc)
-
-        if body.status == TxnStatus.completed:
+        elif body.status == TxnStatus.completed:
             txn.completed_at = datetime.now(timezone.utc)
             _on_completed(txn, db)
+        elif body.status == TxnStatus.cancelled:
+            _on_cancelled(txn, db)
 
     db.commit()
     db.refresh(txn)
@@ -153,3 +157,11 @@ def _on_completed(txn: Transaction, db: Session) -> None:
     listing = db.query(Listing).filter(Listing.listing_id == txn.listing_id).first()
     if listing:
         listing.status = ListingStatus.sold
+
+
+def _on_cancelled(txn: Transaction, db: Session) -> None:
+    """When a deal falls through, release the listing back to the marketplace
+    so it shows up in browse again and can take new offers."""
+    listing = db.query(Listing).filter(Listing.listing_id == txn.listing_id).first()
+    if listing and listing.status == ListingStatus.in_negotiation:
+        listing.status = ListingStatus.active

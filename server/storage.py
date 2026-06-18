@@ -9,7 +9,7 @@ import shutil
 import uuid
 from pathlib import Path
 
-from fastapi import UploadFile
+from fastapi import HTTPException, UploadFile
 
 from config import settings
 
@@ -30,8 +30,13 @@ async def save_image(file: UploadFile) -> str:
 
 
 def _validate(file: UploadFile) -> None:
+    # Client-facing validation → 400, not a 500 from an uncaught ValueError.
     if file.content_type not in _ALLOWED_TYPES:
-        raise ValueError(f"Unsupported file type: {file.content_type}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type: {file.content_type or 'unknown'}. "
+                   f"Allowed: {', '.join(sorted(_ALLOWED_TYPES))}",
+        )
 
 
 async def _save_local(file: UploadFile) -> str:

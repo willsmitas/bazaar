@@ -808,7 +808,7 @@ const Api = {
 
   me:          ()         => api('/users/me'),
   updateMe:    (b)        => api('/users/me',  { method:'PUT', body:b }),
-  user:        (id)       => api('/users/' + id, { auth:false }),
+  user:        (id)       => api('/users/' + id),
 
   browse:      (params={})=> { const q = new URLSearchParams(); for (const k in params) if (params[k]) q.set(k, params[k]); const s = q.toString(); return api('/listings' + (s ? '?'+s : ''), { auth:false }); },
   getListing:  (id)       => api('/listings/' + id, { auth:false }),
@@ -829,6 +829,7 @@ const Api = {
   getReports:    (status)     => api('/admin/reports' + (status ? '?status=' + status : '')),
   resolveReport: (id, status) => api('/admin/reports/' + id + '/resolve', { method:'POST', body:{ status } }),
   banUser:       (id, reason) => api('/admin/users/' + id + '/ban', { method:'POST', body:{ reason } }),
+  adminUser:     (id)         => api('/admin/users/' + id),
 };
 
 /* ════ APP STATE ════ */
@@ -1457,7 +1458,7 @@ async function loadAdminReports(){
   const cards = await Promise.all(reports.map(async r => {
     let who = 'Unknown', banBtn = '';
     if (r.reported_user_id) {
-      try { const u = await Api.user(r.reported_user_id); who = esc(u.full_name) + ' · ' + esc(u.email); }
+      try { const u = await Api.adminUser(r.reported_user_id); who = esc(u.full_name) + ' · ' + esc(u.email); }
       catch { who = r.reported_user_id; }
       banBtn = `<button class="btn btn-sm" style="background:#EF4444;color:#fff;" onclick="adminBan('${r.reported_user_id}','${r.report_id}')">Ban user</button>`;
     } else if (r.reported_listing_id) {

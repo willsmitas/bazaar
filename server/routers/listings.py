@@ -17,6 +17,8 @@ def browse(
     q:        Optional[str]         = Query(None, description="Search title and description"),
     category: Optional[str]         = Query(None),
     type:     Optional[ListingType] = Query(None),
+    limit:    int                   = Query(50, ge=1, le=100, description="Max results per page"),
+    offset:   int                   = Query(0, ge=0, description="Number of results to skip"),
     db:       Session               = Depends(get_db),
 ):
     query = db.query(Listing).filter(Listing.status == ListingStatus.active)
@@ -28,7 +30,7 @@ def browse(
         query = query.filter(Listing.category == category)
     if type:
         query = query.filter(Listing.type == type)
-    return query.order_by(Listing.created_at.desc()).all()
+    return query.order_by(Listing.created_at.desc()).offset(offset).limit(limit).all()
 
 
 @router.post("", response_model=ListingResponse, status_code=201)
@@ -62,8 +64,11 @@ def my_listings(
 @router.get("/{listing_id}", response_model=ListingResponse)
 def get_listing(listing_id: str, db: Session = Depends(get_db)):
     listing = _get_or_404(listing_id, db)
-    listing.view_count += 1
+    # Increment atomically in SQL (view_count = view_count + 1) so concurrent
+    # views don't clobber each other via a read-modify-write race.
+    listing.view_count = Listing.view_count + 1
     db.commit()
+    db.refresh(listing)
     return listing
 
 

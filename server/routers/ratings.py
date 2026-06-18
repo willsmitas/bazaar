@@ -1,3 +1,5 @@
+from decimal import ROUND_HALF_UP, Decimal
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -50,7 +52,10 @@ def create_rating(
 
     ratee = db.query(User).filter(User.user_id == body.ratee_id).first()
     if ratee:
-        ratee.rating_avg   = round(float(avg or 0), 2)
+        # Keep it in Decimal end-to-end so the cached average matches the
+        # Numeric(3,2) column exactly (no float rounding drift).
+        avg_dec = Decimal(str(avg)) if avg is not None else Decimal("0")
+        ratee.rating_avg   = avg_dec.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         ratee.rating_count = count or 0
 
     db.commit()

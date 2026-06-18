@@ -65,11 +65,18 @@ async def chat_socket(websocket: WebSocket, chat_id: str):
         await websocket.close(code=1008)          # 1008 = policy violation
         return
 
-    # Authorize: the user must be a participant in this chat.
+    # Authorize: the user must be an active, verified participant in this chat.
+    # (Mirrors the REST checks so banned/suspended users can't keep chatting.)
     with SessionLocal() as db:
         user = db.query(User).filter(User.user_id == user_id).first()
         chat = db.query(Chat).filter(Chat.chat_id == chat_id).first()
-        if not user or not user.email_verified or not chat or user_id not in _participants(chat):
+        if (
+            not user
+            or not user.is_active
+            or not user.email_verified
+            or not chat
+            or user_id not in _participants(chat)
+        ):
             await websocket.close(code=1008)
             return
 
@@ -82,14 +89,17 @@ async def chat_socket(websocket: WebSocket, chat_id: str):
             except Exception:
                 continue
             content = data.get("content", "") if isinstance(data, dict) else ""
-            if not isinstance(content, str) or not content.strip():
+            if not isinstance(content, str):
+                continue
+            content = content.strip()
+            if not content or len(content) > 4000:   # match the REST validation
                 continue
 
             with SessionLocal() as db:
                 msg = Message(
                     chat_id=uuid.UUID(chat_id),
                     sender_id=uuid.UUID(user_id),
-                    content=content.strip(),
+                    content=content,
                 )
                 db.add(msg)
                 db.commit()
