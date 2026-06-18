@@ -18,7 +18,7 @@ import uuid
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from db.database import SessionLocal
-from db.models import Chat, Message
+from db.models import Chat, Message, User
 from server.security import decode_access_token
 
 router = APIRouter()
@@ -67,8 +67,9 @@ async def chat_socket(websocket: WebSocket, chat_id: str):
 
     # Authorize: the user must be a participant in this chat.
     with SessionLocal() as db:
+        user = db.query(User).filter(User.user_id == user_id).first()
         chat = db.query(Chat).filter(Chat.chat_id == chat_id).first()
-        if not chat or user_id not in _participants(chat):
+        if not user or not user.email_verified or not chat or user_id not in _participants(chat):
             await websocket.close(code=1008)
             return
 

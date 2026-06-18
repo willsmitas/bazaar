@@ -44,6 +44,13 @@ def get_current_user(
     return user
 
 
+def get_verified_user(current_user: User = Depends(get_current_user)) -> User:
+    """Like get_current_user, but also requires a verified email address."""
+    if not current_user.email_verified:
+        raise HTTPException(status_code=403, detail="Verify your email address to do that")
+    return current_user
+
+
 def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
     """Like get_current_user, but also requires the account to be an admin."""
     if not current_user.is_admin:

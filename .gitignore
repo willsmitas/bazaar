@@ -21,3 +21,6 @@ uploads/
 Thumbs.db
 .idea/
 .vscode/
+
+# ── Claude Code (share launch.json; ignore per-developer local settings) ──
+.claude/settings.local.json

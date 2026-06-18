@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from db.models import Chat, Message, User
-from server.dependencies import get_current_user, get_db
+from server.dependencies import get_verified_user, get_db
 from server.schemas import ChatResponse, MessageResponse, SendMessageRequest
 
 router = APIRouter(prefix="/chats", tags=["chats"])
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/chats", tags=["chats"])
 
 @router.get("", response_model=List[ChatResponse])
 def list_chats(
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     return (
@@ -29,7 +29,7 @@ def list_chats(
 @router.get("/{chat_id}/messages", response_model=List[MessageResponse])
 def get_messages(
     chat_id:      str,
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     chat = _get_or_403(chat_id, current_user, db)
@@ -54,7 +54,7 @@ def get_messages(
 def send_message(
     chat_id:      str,
     body:         SendMessageRequest,
-    current_user: User    = Depends(get_current_user),
+    current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
     chat = _get_or_403(chat_id, current_user, db)
