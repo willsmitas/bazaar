@@ -49,6 +49,9 @@ if settings.storage_backend == "local":
     Path("uploads").mkdir(exist_ok=True)
     app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
+# Serve the frontend (index.html) from the root
+app.mount("/", StaticFiles(directory=".", file="index.html"), name="frontend")
+
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(listings.router)
