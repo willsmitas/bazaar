@@ -13,6 +13,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import settings
@@ -49,9 +50,6 @@ if settings.storage_backend == "local":
     Path("uploads").mkdir(exist_ok=True)
     app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
-# Serve the frontend (index.html) from the root
-app.mount("/", StaticFiles(directory=".", file="index.html"), name="frontend")
-
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(listings.router)
@@ -66,3 +64,12 @@ app.include_router(ws.router)
 @app.get("/health", tags=["meta"])
 def health():
     return {"status": "ok"}
+
+
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    try:
+        with open("index.html") as f:
+            return HTMLResponse(f.read())
+    except FileNotFoundError:
+        return {"detail": "Not Found"}, 404
