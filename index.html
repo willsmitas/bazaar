@@ -744,7 +744,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
    To point at a cloud deployment without editing this file, run in
    the browser console:  localStorage.setItem('bazaar_api','https://api.yoursite.com')
 ════════════════════════════════════════════════════════════ */
-const API_BASE = (localStorage.getItem('bazaar_api') || 'http://localhost:8000').replace(/\/$/, '');
+const API_BASE = (localStorage.getItem('bazaar_api') || window.location.origin).replace(/\/$/, '');
 const WS_BASE  = API_BASE.replace(/^http/, 'ws');   // http→ws, https→wss
 
 /* ════ TOKEN STORE (localStorage) ════ */
