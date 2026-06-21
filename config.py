@@ -39,9 +39,15 @@ class Settings(BaseSettings):
     # Set to "" to allow any domain.
     allowed_email_domains:     str = "brown.edu"
 
-    # ── Email (SMTP) ──────────────────────────────────────────────────────────
-    # Dev: leave smtp_host blank — codes print to the server console instead.
-    # Prod: set these to your SMTP provider's values.
+    # ── Email ─────────────────────────────────────────────────────────────────
+    # Three ways to send, chosen in this order (see server/email.py):
+    #   1. DEBUG=true            → codes print to the server console (local dev)
+    #   2. BREVO_API_KEY set     → send via Brevo's HTTP API (works on hosts that
+    #                              block outbound SMTP ports, e.g. Railway/Render)
+    #   3. SMTP_HOST set         → send over SMTP
+    # smtp_from doubles as the "From" address for Brevo; it must be a sender you've
+    # verified with the provider (e.g. your Gmail address).
+    brevo_api_key: str  = ""
     smtp_host:     str  = ""
     smtp_port:     int  = 587
     smtp_tls:      bool = True

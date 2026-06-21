@@ -11,7 +11,10 @@ Compatible with any SMTP provider:
   Mailgun    → smtp.mailgun.org : 587
   AWS SES    → email-smtp.<region>.amazonaws.com : 587
 """
+import json
 import smtplib
+import urllib.error
+import urllib.request
 from email.mime.text import MIMEText
 
 from config import settings
@@ -49,6 +52,8 @@ def send_reset_code(to_email: str, code: str) -> None:
 def _dispatch(*, to: str, label: str, subject: str, body: str, code: str) -> None:
     if settings.debug:
         _print_to_console(to, label, code)
+    elif settings.brevo_api_key:
+        _send_brevo(to=to, subject=subject, body=body)
     else:
         _send_smtp(to=to, subject=subject, body=body)
 
@@ -57,6 +62,37 @@ def _print_to_console(to: str, label: str, code: str) -> None:
     """Dev shortcut — print instead of sending email."""
     border = "=" * 48
     print(f"\n{border}\n  {label}\n  To:   {to}\n  Code: {code}\n{border}\n")
+
+
+def _send_brevo(*, to: str, subject: str, body: str) -> None:
+    """Send via Brevo's transactional email HTTP API (port 443).
+
+    Works on hosts that block outbound SMTP. The sender (smtp_from) must be a
+    verified sender in your Brevo account.
+    """
+    payload = json.dumps({
+        "sender":      {"name": "Bazaar", "email": settings.smtp_from},
+        "to":          [{"email": to}],
+        "subject":     subject,
+        "textContent": body,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=payload,
+        headers={
+            "api-key":      settings.brevo_api_key,
+            "Content-Type": "application/json",
+            "Accept":       "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            resp.read()
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", "replace")
+        raise RuntimeError(f"Brevo API error {e.code}: {detail}") from e
 
 
 def _send_smtp(*, to: str, subject: str, body: str) -> None:
