@@ -54,6 +54,32 @@ CREATE TYPE report_status AS ENUM (
     'dismissed'
 );
 
+CREATE TYPE admin_role AS ENUM (
+    'school_admin',   -- can moderate within own school only
+    'global_admin'    -- can moderate across all schools
+);
+
+
+-- =============================================================
+--  SCHOOLS  (tenants)
+--  Each school is an isolated marketplace. Users are matched to a
+--  school by their email domain at registration.
+-- =============================================================
+
+CREATE TABLE schools (
+    school_id      UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    name           VARCHAR(255) NOT NULL UNIQUE,          -- 'Brown University'
+    slug           VARCHAR(63)  NOT NULL UNIQUE,          -- 'brown' (URLs/subdomains)
+    email_domains  TEXT[]       NOT NULL,                 -- {'brown.edu'}
+    primary_color  VARCHAR(9)   NOT NULL DEFAULT '#4E3629',
+    accent_color   VARCHAR(9)   NOT NULL DEFAULT '#9E7E38',
+    emoji          VARCHAR(16),                           -- '🐻'
+    logo_url       TEXT,
+    is_active      BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
 
 -- =============================================================
 --  USERS
@@ -68,9 +94,10 @@ CREATE TABLE users (
     password_hash         VARCHAR(255) NOT NULL,
     profile_picture_url   TEXT,
     bio                   TEXT,
-    university            VARCHAR(255),          -- e.g. 'Brown University'
+    university            VARCHAR(255),          -- display name; mirrors schools.name
+    school_id             UUID         NOT NULL REFERENCES schools(school_id),
     email_verified        BOOLEAN      NOT NULL DEFAULT FALSE,
-    is_admin              BOOLEAN      NOT NULL DEFAULT FALSE,
+    admin_role            admin_role,                          -- NULL = regular user
 
     -- One-time codes (NULLed after use)
     verification_code       VARCHAR(6),
@@ -104,6 +131,8 @@ CREATE TABLE users (
 CREATE TABLE listings (
     listing_id   UUID           PRIMARY KEY DEFAULT gen_random_uuid(),
     seller_id    UUID           NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    -- Denormalized from the seller's school so browse can scope in one indexed filter.
+    school_id    UUID           NOT NULL REFERENCES schools(school_id),
 
     type         listing_type   NOT NULL DEFAULT 'sell',
     title        VARCHAR(255)   NOT NULL,
@@ -221,17 +250,39 @@ CREATE TABLE reports (
 
 
 -- =============================================================
+--  BLOCKS
+--  If A blocks B, neither sees the other's listings and neither
+--  can initiate new transactions or send messages to the other.
+-- =============================================================
+
+CREATE TABLE blocks (
+    block_id   UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    blocker_id UUID        NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    blocked_id UUID        NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    UNIQUE (blocker_id, blocked_id),
+    CHECK  (blocker_id <> blocked_id)
+);
+
+
+-- =============================================================
 --  INDEXES
 -- =============================================================
+
+CREATE INDEX idx_schools_email_domains ON schools USING GIN (email_domains);
 
 CREATE INDEX idx_users_email          ON users(email);
 CREATE INDEX idx_users_university     ON users(university);
 CREATE INDEX idx_users_status         ON users(account_status);
+CREATE INDEX idx_users_school         ON users(school_id);
 
 CREATE INDEX idx_listings_seller      ON listings(seller_id);
 CREATE INDEX idx_listings_status      ON listings(status);
 CREATE INDEX idx_listings_category    ON listings(category);
 CREATE INDEX idx_listings_type        ON listings(type);
+-- Primary browse query: active listings for one school, newest first.
+CREATE INDEX idx_listings_school_status ON listings(school_id, status, created_at);
 
 CREATE INDEX idx_txns_buyer           ON transactions(buyer_id);
 CREATE INDEX idx_txns_seller          ON transactions(seller_id);
@@ -243,6 +294,10 @@ CREATE INDEX idx_msgs_sent_at         ON messages(sent_at DESC);
 CREATE INDEX idx_msgs_unread          ON messages(chat_id) WHERE is_read = FALSE;
 
 CREATE INDEX idx_ratings_ratee        ON ratings(ratee_id);
+
+-- Both directions are queried: "who have I blocked" and "who has blocked me".
+CREATE INDEX idx_blocks_blocker       ON blocks(blocker_id);
+CREATE INDEX idx_blocks_blocked       ON blocks(blocked_id);
 CREATE INDEX idx_reports_status       ON reports(status) WHERE status = 'pending';
 
 
@@ -257,6 +312,10 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+
+CREATE TRIGGER trg_schools_updated_at
+    BEFORE UPDATE ON schools
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE TRIGGER trg_users_updated_at
     BEFORE UPDATE ON users

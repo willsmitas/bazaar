@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from db.models import Chat, Listing, ListingStatus, Transaction, TxnStatus, User
-from server.dependencies import get_verified_user, get_db
+from server.dependencies import get_blocked_user_ids, get_verified_user, get_db
 from server.schemas import (
     CreateTransactionRequest,
     TransactionResponse,
@@ -32,10 +32,15 @@ def create_transaction(
     db:           Session = Depends(get_db),
 ):
     listing = db.query(Listing).filter(Listing.listing_id == body.listing_id).first()
-    if not listing:
+    # Treat a cross-school listing as non-existent — isolation must hold even if a
+    # listing_id is guessed, since opening a transaction reveals both identities.
+    if not listing or listing.school_id != current_user.school_id:
         raise HTTPException(status_code=404, detail="Listing not found")
     if listing.seller_id == current_user.user_id:
         raise HTTPException(status_code=400, detail="Cannot open a transaction on your own listing")
+    blocked_ids = get_blocked_user_ids(current_user.user_id, db)
+    if listing.seller_id in blocked_ids:
+        raise HTTPException(status_code=404, detail="Listing not found")
     if listing.status != ListingStatus.active:
         raise HTTPException(status_code=400, detail="Listing is not available")
 

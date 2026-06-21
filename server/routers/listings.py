@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from db.models import Listing, ListingStatus, ListingType, User
-from server.dependencies import get_verified_user, get_db
+from server.dependencies import get_blocked_user_ids, get_current_user, get_verified_user, get_db
 from server.schemas import CreateListingRequest, ListingResponse, UpdateListingRequest
 from server.storage import save_image
 
@@ -19,9 +19,18 @@ def browse(
     type:     Optional[ListingType] = Query(None),
     limit:    int                   = Query(50, ge=1, le=100, description="Max results per page"),
     offset:   int                   = Query(0, ge=0, description="Number of results to skip"),
+    current_user: User              = Depends(get_current_user),
     db:       Session               = Depends(get_db),
 ):
-    query = db.query(Listing).filter(Listing.status == ListingStatus.active)
+    # Scope to the viewer's school — each school is an isolated marketplace.
+    query = db.query(Listing).filter(
+        Listing.school_id == current_user.school_id,
+        Listing.status == ListingStatus.active,
+    )
+    # Hide listings from/to blocked users (bidirectional).
+    blocked_ids = get_blocked_user_ids(current_user.user_id, db)
+    if blocked_ids:
+        query = query.filter(Listing.seller_id.notin_(blocked_ids))
     if q:
         query = query.filter(
             or_(Listing.title.ilike(f"%{q}%"), Listing.description.ilike(f"%{q}%"))
@@ -39,7 +48,11 @@ def create_listing(
     current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
-    listing = Listing(**body.model_dump(), seller_id=current_user.user_id)
+    listing = Listing(
+        **body.model_dump(),
+        seller_id=current_user.user_id,
+        school_id=current_user.school_id,
+    )
     db.add(listing)
     db.commit()
     db.refresh(listing)
@@ -62,8 +75,17 @@ def my_listings(
 
 
 @router.get("/{listing_id}", response_model=ListingResponse)
-def get_listing(listing_id: str, db: Session = Depends(get_db)):
+def get_listing(
+    listing_id:   str,
+    current_user: User    = Depends(get_current_user),
+    db:           Session = Depends(get_db),
+):
     listing = _get_or_404(listing_id, db)
+    if listing.school_id != current_user.school_id:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    blocked_ids = get_blocked_user_ids(current_user.user_id, db)
+    if listing.seller_id in blocked_ids:
+        raise HTTPException(status_code=404, detail="Listing not found")
     # Increment atomically in SQL (view_count = view_count + 1) so concurrent
     # views don't clobber each other via a read-modify-write race.
     listing.view_count = Listing.view_count + 1

@@ -43,12 +43,14 @@ async def upload_avatar(
 @router.get("/{user_id}", response_model=PublicUserResponse)
 def get_user(
     user_id: str,
-    _current_user: User = Depends(get_current_user),  # must be logged in
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """Public profile of another user. Returns only non-identifying fields
     (no email) to preserve anonymity until a deal is struck."""
     user = db.query(User).filter(User.user_id == user_id).first()
-    if not user:
+    # Scope to the viewer's school — a profile in another school's marketplace
+    # is treated as non-existent.
+    if not user or user.school_id != current_user.school_id:
         raise HTTPException(status_code=404, detail="User not found")
     return user
