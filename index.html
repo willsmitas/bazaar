@@ -383,6 +383,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           <div class="fld"><label class="flbl">Verification Code</label><input class="inp otp-inp" id="ve-code" maxlength="6" inputmode="numeric" placeholder="000000"/></div>
           <button class="btn btn-p" onclick="doVerify()">Verify &amp; Continue</button>
           <div class="auth-switch"><b onclick="doResend()">Resend code</b></div>
+          <div class="auth-switch" style="margin-top:8px;"><b onclick="backToLogin()">Back to sign in</b></div>
         </div>
 
         <!-- Forgot / reset password -->
@@ -926,6 +927,9 @@ async function doReset(){
 }
 
 function signOut(){ Tok.clear(); ME = null; CHAT_CACHE = {}; _allListings = []; showAuth(); showToast('Signed out'); }
+
+// Abandon an unverified session from the verify screen and return to login.
+function backToLogin(){ Tok.clear(); ME = null; document.getElementById('ve-code').value = ''; showView('login'); }
 
 async function enterApp(){
   try { ME = await Api.me(); }
