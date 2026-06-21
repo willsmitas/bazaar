@@ -17,7 +17,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import settings
-from server.routers import admin, auth, chats, listings, ratings, reports, transactions, users, ws
+from server.routers import admin, auth, blocks, chats, listings, ratings, reports, schools, transactions, users, ws
 
 app = FastAPI(
     title="Bazaar API",
@@ -52,6 +52,8 @@ if settings.storage_backend == "local":
 
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(blocks.router)
+app.include_router(schools.router)
 app.include_router(listings.router)
 app.include_router(transactions.router)
 app.include_router(chats.router)

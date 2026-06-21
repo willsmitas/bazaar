@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-<title>Bazaar — Brown University</title>
+<title>Bazaar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
@@ -334,7 +334,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
   <!-- Status Bar -->
   <div class="sbar">
     <span>9:41</span>
-    <span style="font-size:11px;letter-spacing:.5px;">BROWN UNIVERSITY</span>
+    <span style="font-size:11px;letter-spacing:.5px;" data-brand-carrier>BAZAAR</span>
     <span style="display:flex;gap:5px;align-items:center;">
       <svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor"><rect x="0" y="4" width="2" height="6" rx="1"/><rect x="3" y="2" width="2" height="8" rx="1"/><rect x="6" y="1" width="2" height="9" rx="1"/><rect x="9" y="0" width="2" height="10" rx="1"/></svg>
       🔋
@@ -349,7 +349,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
     <div class="auth" id="authScreen">
       <div class="auth-hero">
         <div class="auth-logo">Bazaar</div>
-        <div class="auth-tag">Brown University Marketplace</div>
+        <div class="auth-tag" data-brand-tag>Student Marketplace</div>
       </div>
       <div class="auth-body">
         <div class="auth-err" id="authErr"></div>
@@ -358,7 +358,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         <div id="view-login">
           <div class="auth-title">Welcome back</div>
           <div class="auth-sub">Sign in to buy and sell on campus.</div>
-          <div class="fld"><label class="flbl">Brown Email</label><input class="inp" id="li-email" type="email" placeholder="you@brown.edu" autocomplete="username"/></div>
+          <div class="fld"><label class="flbl" data-brand-email-label>School Email</label><input class="inp" id="li-email" type="email" placeholder="you@school.edu" autocomplete="username" data-brand-email-input/></div>
           <div class="fld"><label class="flbl">Password</label><input class="inp" id="li-pw" type="password" placeholder="••••••••" autocomplete="current-password"/></div>
           <button class="btn btn-p" onclick="doLogin()">Sign In</button>
           <div class="auth-switch">No account? <b onclick="showView('register')">Create one</b></div>
@@ -370,7 +370,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           <div class="auth-title">Create your account</div>
           <div class="auth-sub">Use your university email so we can verify you're a student.</div>
           <div class="fld"><label class="flbl">Full Name</label><input class="inp" id="re-name" placeholder="William Smitas"/></div>
-          <div class="fld"><label class="flbl">Brown Email</label><input class="inp" id="re-email" type="email" placeholder="you@brown.edu"/></div>
+          <div class="fld"><label class="flbl" data-brand-email-label>School Email</label><input class="inp" id="re-email" type="email" placeholder="you@school.edu" data-brand-email-input/></div>
           <div class="fld"><label class="flbl">Password</label><input class="inp" id="re-pw" type="password" placeholder="At least 8 characters"/></div>
           <button class="btn btn-p" onclick="doRegister()">Create Account</button>
           <div class="auth-switch">Already have one? <b onclick="showView('login')">Sign in</b></div>
@@ -390,7 +390,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         <div id="view-forgot" style="display:none;">
           <div class="auth-title">Reset password</div>
           <div class="auth-sub">Enter your email and we'll send a reset code.</div>
-          <div class="fld"><label class="flbl">Brown Email</label><input class="inp" id="fp-email" type="email" placeholder="you@brown.edu"/></div>
+          <div class="fld"><label class="flbl" data-brand-email-label>School Email</label><input class="inp" id="fp-email" type="email" placeholder="you@school.edu" data-brand-email-input/></div>
           <button class="btn btn-p" onclick="doForgot()">Send Reset Code</button>
           <div id="fp-step2" style="display:none;">
             <div class="fld" style="margin-top:18px;"><label class="flbl">Reset Code</label><input class="inp otp-inp" id="fp-code" maxlength="6" inputmode="numeric" placeholder="000000"/></div>
@@ -428,7 +428,10 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           <h3 id="cName">Anon Buyer #1</h3>
           <p id="cSub">Negotiating · TI-84 Calculator</p>
         </div>
-        <div style="margin-left:auto;">
+        <div style="margin-left:auto;display:flex;gap:4px;">
+          <button class="ibtn" onclick="blockFromChat()" title="Block this user">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </button>
           <button class="ibtn" onclick="reportCurrentChat()" title="Report this user">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
           </button>
@@ -479,12 +482,28 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
     </div>
 
     <!-- ═══════════════════════════════
+         BLOCKED USERS OVERLAY
+    ════════════════════════════════ -->
+    <div class="cov" id="blockedOverlay">
+      <div class="chdr">
+        <button class="cback" onclick="closeBlockedUsers()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <div class="chdr-i">
+          <h3>Blocked Users</h3>
+          <p>They can't see your listings, you can't see theirs</p>
+        </div>
+      </div>
+      <div class="content" id="blockedBody" style="overflow-y:auto;flex:1;"></div>
+    </div>
+
+    <!-- ═══════════════════════════════
          SCREEN 1 — LIST ITEM
     ════════════════════════════════ -->
     <div class="screen active" id="screen-list">
       <div class="hdr" style="flex-shrink:0;">
         <div class="hdr-row">
-          <div><div class="logo">Bazaar</div><div class="sub">Brown University Marketplace</div></div>
+          <div><div class="logo">Bazaar</div><div class="sub" data-brand-tag>Student Marketplace</div></div>
           <div class="hdr-acts">
             <button class="ibtn" onclick="showToast('3 new notifications')">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
@@ -653,7 +672,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
       <div class="phdr">
         <div class="pav" id="pAv">?</div>
         <div class="pname" id="pName">—</div>
-        <div class="puni" id="pUni">🐻 Brown University</div>
+        <div class="puni" id="pUni">—</div>
         <div class="prat" id="pRat"><span class="stars">☆☆☆☆☆</span> 0.0 &nbsp;·&nbsp; 0 reviews</div>
       </div>
 
@@ -691,6 +710,10 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           </div>
           <div class="mrow">
             <div class="mrow-l"><div class="mico">💳</div><span class="mlbl">Payment Methods</span></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+          <div class="mrow" onclick="openBlockedUsers()">
+            <div class="mrow-l"><div class="mico">🚫</div><span class="mlbl">Blocked Users</span></div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </div>
           <div class="mrow">
@@ -810,9 +833,10 @@ const Api = {
   me:          ()         => api('/users/me'),
   updateMe:    (b)        => api('/users/me',  { method:'PUT', body:b }),
   user:        (id)       => api('/users/' + id),
+  schools:     ()         => api('/schools', { auth:false }),
 
-  browse:      (params={})=> { const q = new URLSearchParams(); for (const k in params) if (params[k]) q.set(k, params[k]); const s = q.toString(); return api('/listings' + (s ? '?'+s : ''), { auth:false }); },
-  getListing:  (id)       => api('/listings/' + id, { auth:false }),
+  browse:      (params={})=> { const q = new URLSearchParams(); for (const k in params) if (params[k]) q.set(k, params[k]); const s = q.toString(); return api('/listings' + (s ? '?'+s : '')); },
+  getListing:  (id)       => api('/listings/' + id),
   myListings:  ()         => api('/listings/me'),
   createListing:(b)       => api('/listings', { method:'POST', body:b }),
   uploadListingImage:(id, file) => { const f = new FormData(); f.append('file', file); return api('/listings/' + id + '/images', { method:'POST', form:f }); },
@@ -825,6 +849,10 @@ const Api = {
   listTransactions: ()    => api('/transactions'),
   getTransaction:   (id)  => api('/transactions/' + id),
   updateTransaction:(id,b)=> api('/transactions/' + id, { method:'PUT', body:b }),
+
+  blockUser:     (id)         => api('/users/' + id + '/block', { method:'POST' }),
+  unblockUser:   (id)         => api('/users/' + id + '/block', { method:'DELETE' }),
+  listBlocks:    ()           => api('/users/me/blocks'),
 
   createReport:  (b)          => api('/reports', { method:'POST', body:b }),
   getReports:    (status)     => api('/admin/reports' + (status ? '?status=' + status : '')),
@@ -847,6 +875,54 @@ const val = id => document.getElementById(id).value.trim();
 function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function initials(name){ return (name || '?').trim().split(/\s+/).map(s => s[0]).slice(0,2).join('').toUpperCase(); }
 function cap(s){ return String(s || '').replace(/_/g,' ').replace(/\b\w/g, m => m.toUpperCase()); }
+
+/* ════════════════════════════════════════════════════════════
+   PER-SCHOOL BRANDING
+   Palette + copy are data-driven: by the user's school after login,
+   or by the email domain typed on the sign-in screens beforehand.
+   The full 5-shade palette is derived from each school's two brand
+   colors so a new school only needs to supply primary + accent.
+════════════════════════════════════════════════════════════ */
+let SCHOOLS = [];     // active schools (public), cached for sign-in theming
+let BRAND   = null;   // currently applied school (or null = neutral default)
+
+function _hexToRgb(h){ h = String(h || '').replace('#',''); if (h.length === 3) h = h.split('').map(c => c+c).join(''); const n = parseInt(h,16) || 0; return [(n>>16)&255, (n>>8)&255, n&255]; }
+function _rgbToHex(r,g,b){ return '#' + [r,g,b].map(x => Math.max(0,Math.min(255,Math.round(x))).toString(16).padStart(2,'0')).join(''); }
+function _mix(hex, target, amt){ const [r,g,b] = _hexToRgb(hex); return _rgbToHex(r+(target[0]-r)*amt, g+(target[1]-g)*amt, b+(target[2]-b)*amt); }
+const _darken  = (hex, amt) => _mix(hex, [0,0,0], amt);
+const _lighten = (hex, amt) => _mix(hex, [255,255,255], amt);
+
+async function loadSchools(){ try { SCHOOLS = await Api.schools(); } catch { SCHOOLS = []; } }
+
+function schoolForEmail(email){
+  const domain = (String(email || '').split('@')[1] || '').toLowerCase().trim();
+  if (!domain) return null;
+  return SCHOOLS.find(s => (s.email_domains || []).includes(domain)) || null;
+}
+
+function applyBranding(school){
+  BRAND = school || null;
+  const primary = (school && school.primary_color) || '#4E3629';
+  const accent  = (school && school.accent_color)  || '#9E7E38';
+  const root = document.documentElement.style;
+  root.setProperty('--bg',      primary);
+  root.setProperty('--bg-dk',   _darken(primary, 0.45));
+  root.setProperty('--bg-md',   _lighten(primary, 0.20));
+  root.setProperty('--gold',    accent);
+  root.setProperty('--gold-lt', _lighten(accent, 0.25));
+
+  const name   = school ? school.name : null;
+  const domain = (school && school.email_domains && school.email_domains[0]) || 'school.edu';
+  const emoji  = (school && school.emoji) || '';
+
+  document.title = name ? ('Bazaar — ' + name) : 'Bazaar';
+  document.querySelectorAll('[data-brand-tag]').forEach(el => el.textContent = (name || 'Student') + ' Marketplace');
+  document.querySelectorAll('[data-brand-email-label]').forEach(el => el.textContent = name ? (name + ' Email') : 'School Email');
+  document.querySelectorAll('[data-brand-email-input]').forEach(el => el.placeholder = 'you@' + domain);
+  document.querySelectorAll('[data-brand-carrier]').forEach(el => el.textContent = name ? name.toUpperCase() : 'BAZAAR');
+  const pUni = document.getElementById('pUni');
+  if (pUni) pUni.textContent = name ? ((emoji ? emoji + ' ' : '') + name) : '—';
+}
 function stars(avg){ const n = Math.round(Number(avg) || 0); return '★★★★★'.slice(0,n) + '☆☆☆☆☆'.slice(0,5-n); }
 function imgUrl(u){ return !u ? '' : (u.startsWith('http') ? u : API_BASE + u); }
 function money(l){
@@ -894,7 +970,7 @@ async function doRegister(){
   if (!full_name || !email || !password) { authErr('Please fill in all fields.'); return; }
   if (password.length < 8) { authErr('Password must be at least 8 characters.'); return; }
   try {
-    await Api.register({ email, full_name, password, university:'Brown University' });
+    await Api.register({ email, full_name, password });   // school is derived from the email domain server-side
     Tok.set(await Api.login({ email, password }));   // auto-login so we can verify the email
     document.getElementById('ve-email').textContent = email;
     document.getElementById('ve-devhint').style.display = 'inline';
@@ -934,6 +1010,7 @@ function backToLogin(){ Tok.clear(); ME = null; document.getElementById('ve-code
 async function enterApp(){
   try { ME = await Api.me(); }
   catch (e) { Tok.clear(); showAuth(); authErr('Session expired — please sign in.'); return; }
+  applyBranding(ME.school);                        // theme the app to the user's school
   if (!ME.email_verified) {                       // must verify before using the app
     document.getElementById('authScreen').classList.remove('hidden');
     document.getElementById('ve-email').textContent = ME.email;
@@ -1133,12 +1210,13 @@ async function loadProfile(){
   if (ME.profile_picture_url) { av.innerHTML = `<img src="${imgUrl(ME.profile_picture_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`; }
   else { av.textContent = initials(ME.full_name); }
   document.getElementById('pName').textContent = ME.full_name;
-  document.getElementById('pUni').innerHTML  = '🐻 ' + esc(ME.university || 'Brown University');
+  const _sch = ME.school;
+  document.getElementById('pUni').textContent = _sch ? ((_sch.emoji ? _sch.emoji + ' ' : '') + _sch.name) : (ME.university || '');
   const rc = ME.rating_count || 0;
   document.getElementById('pRat').innerHTML = `<span class="stars">${stars(ME.rating_avg)}</span> ${Number(ME.rating_avg).toFixed(1)} &nbsp;·&nbsp; ${rc} review${rc === 1 ? '' : 's'}`;
   document.getElementById('pBio').textContent = ME.bio || 'No bio yet — tap Edit to add one.';
   document.getElementById('stSold').textContent = ME.transactions_completed;
-  document.getElementById('adminRow').style.display = ME.is_admin ? 'flex' : 'none';
+  document.getElementById('adminRow').style.display = ME.admin_role ? 'flex' : 'none';
 
   // My listings — dedicated endpoint returns every status (active, sold, removed…)
   let mine = [];
@@ -1431,6 +1509,55 @@ async function loadCompleted(){
 }
 
 /* ════════════════════════════════════════════════════════════
+   BLOCKING
+════════════════════════════════════════════════════════════ */
+async function blockFromChat(){
+  const entry = curChatId && CHAT_CACHE[curChatId];
+  if (!entry || !entry.other) { showToast('Open a chat to block someone'); return; }
+  const name = entry.other.full_name || 'this user';
+  if (!confirm(`Block ${name}?\n\nYou won't see their listings and they won't see yours. You can unblock them later from Profile → Blocked Users.`)) return;
+  try {
+    await Api.blockUser(entry.other.user_id);
+    showToast(`${name} blocked`);
+    closeChat();
+    await loadListings();
+  } catch (e) { showToast(e.message); }
+}
+
+function openBlockedUsers(){ document.getElementById('blockedOverlay').classList.add('open'); loadBlockedUsers(); }
+function closeBlockedUsers(){ document.getElementById('blockedOverlay').classList.remove('open'); }
+
+async function loadBlockedUsers(){
+  const body = document.getElementById('blockedBody');
+  body.innerHTML = `<div style="padding:20px;color:var(--txt3);font-size:13px;">Loading…</div>`;
+  let blocks;
+  try { blocks = await Api.listBlocks(); }
+  catch (e) { body.innerHTML = `<div style="padding:20px;color:var(--txt3);font-size:13px;">${esc(e.message)}</div>`; return; }
+  if (!blocks.length) {
+    body.innerHTML = `<div style="padding:48px 20px;text-align:center;color:var(--txt3);">
+      <div style="font-size:42px;margin-bottom:10px;">👍</div>
+      <div style="font-size:13px;">No blocked users.</div></div>`;
+    return;
+  }
+  body.innerHTML = blocks.map(b => `<div class="card" style="margin:10px 14px;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div style="font:700 14px var(--font);color:var(--txt1);">${esc(b.blocked_name || 'Unknown')}</div>
+      <div style="font-size:12px;color:var(--txt3);">Blocked ${timeAgo(b.created_at)}</div>
+    </div>
+    <button class="btn btn-o btn-sm" onclick="doUnblock('${b.blocked_id}')">Unblock</button>
+  </div>`).join('');
+}
+
+async function doUnblock(userId){
+  try {
+    await Api.unblockUser(userId);
+    showToast('User unblocked');
+    loadBlockedUsers();
+    await loadListings();
+  } catch (e) { showToast(e.message); }
+}
+
+/* ════════════════════════════════════════════════════════════
    MODERATION  (report a user + admin review panel)
 ════════════════════════════════════════════════════════════ */
 async function reportCurrentChat(){
@@ -1510,7 +1637,15 @@ document.getElementById('cinp').addEventListener('keydown', e => { if (e.key ===
 document.getElementById('ve-code').addEventListener('keydown', e => { if (e.key === 'Enter') doVerify(); });
 document.getElementById('li-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
+// Live-theme the sign-in screens as the user types a recognized school email.
+['li-email','re-email','fp-email'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', () => applyBranding(schoolForEmail(el.value)));
+});
+
 (async function boot(){
+  await loadSchools();
+  applyBranding(null);            // neutral sign-in branding until we know the school
   if (Tok.access) await enterApp();
   else showAuth();
 })();

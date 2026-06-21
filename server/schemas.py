@@ -11,7 +11,7 @@ from typing import List, Optional
 from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
 
 from db.models import (
-    AccountStatus, ItemCondition, ListingStatus,
+    AccountStatus, AdminRole, ItemCondition, ListingStatus,
     ListingType, ReportStatus, TxnStatus,
 )
 
@@ -54,6 +54,22 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
 
+# ── School ────────────────────────────────────────────────────────────────────
+
+class SchoolResponse(BaseModel):
+    """Public-facing school record — drives per-school branding on the client."""
+    model_config = ConfigDict(from_attributes=True)
+
+    school_id:     uuid.UUID
+    name:          str
+    slug:          str
+    email_domains: List[str]
+    primary_color: str
+    accent_color:  str
+    emoji:         Optional[str]
+    logo_url:      Optional[str]
+
+
 # ── User ──────────────────────────────────────────────────────────────────────
 
 class UserResponse(BaseModel):
@@ -65,8 +81,10 @@ class UserResponse(BaseModel):
     profile_picture_url:    Optional[str]
     bio:                    Optional[str]
     university:             Optional[str]
+    school_id:              Optional[uuid.UUID] = None
+    school:                 Optional[SchoolResponse] = None
     email_verified:         bool
-    is_admin:               bool
+    admin_role:             Optional[AdminRole] = None
     rating_avg:             Decimal
     rating_count:           int
     transactions_completed: int
@@ -96,7 +114,8 @@ class PublicUserResponse(BaseModel):
 class UpdateUserRequest(BaseModel):
     full_name:  Optional[str] = None
     bio:        Optional[str] = None
-    university: Optional[str] = None
+    # `university` is intentionally not editable — it mirrors the user's school
+    # (set at registration) and must not drift from it.
 
 
 # ── Listing ───────────────────────────────────────────────────────────────────
@@ -134,6 +153,7 @@ class ListingResponse(BaseModel):
 
     listing_id:    uuid.UUID
     seller_id:     uuid.UUID
+    school_id:     Optional[uuid.UUID] = None
     type:          ListingType
     title:         str
     description:   Optional[str]
@@ -261,6 +281,27 @@ class ReportResponse(BaseModel):
     created_at:          datetime
 
 
+# ── Block ─────────────────────────────────────────────────────────────────────
+
+class BlockResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    block_id:   uuid.UUID
+    blocker_id: uuid.UUID
+    blocked_id: uuid.UUID
+    created_at: datetime
+
+
+class BlockedUserResponse(BaseModel):
+    """Block record with basic info about the blocked user."""
+    model_config = ConfigDict(from_attributes=True)
+
+    block_id:   uuid.UUID
+    blocked_id: uuid.UUID
+    created_at: datetime
+    blocked_name: Optional[str] = None
+
+
 # ── Admin / moderation ──────────────────────────────────────────────────────────
 
 class ResolveReportRequest(BaseModel):
@@ -289,8 +330,9 @@ class AdminUserResponse(BaseModel):
     user_id:                uuid.UUID
     email:                  str
     full_name:              str
+    school_id:              uuid.UUID
     account_status:         AccountStatus
-    is_admin:               bool
+    admin_role:             Optional[AdminRole] = None
     email_verified:         bool
     suspension_ends_at:     Optional[datetime]
     ban_reason:             Optional[str]

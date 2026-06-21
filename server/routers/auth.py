@@ -3,8 +3,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from config import settings
-from db.models import User
+from db.models import School, User
 from server.dependencies import get_current_user, get_db
 from server.email import send_reset_code, send_verification_code
 from server.schemas import (
@@ -33,13 +32,21 @@ _OTP_TTL = timedelta(minutes=15)
 
 @router.post("/register", response_model=UserResponse, status_code=201)
 def register(body: RegisterRequest, db: Session = Depends(get_db)):
-    """Create an account and send a verification code to the email address."""
-    allowed = {d.strip().lower() for d in settings.allowed_email_domains.split(",") if d.strip()}
+    """Create an account and send a verification code to the email address.
+
+    The email domain determines which school's marketplace the user joins; a
+    domain with no matching active school is rejected.
+    """
     domain = body.email.rsplit("@", 1)[-1].lower()
-    if allowed and domain not in allowed:
+    school = (
+        db.query(School)
+        .filter(School.is_active.is_(True), School.email_domains.any(domain))
+        .first()
+    )
+    if not school:
         raise HTTPException(
             status_code=403,
-            detail=f"Registration is limited to {', '.join(sorted(allowed))} email addresses",
+            detail=f"Bazaar isn't available for @{domain} yet — we add schools one at a time.",
         )
     if db.query(User).filter(User.email == body.email).first():
         raise HTTPException(status_code=409, detail="Email already registered")
@@ -49,7 +56,8 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
         email=body.email,
         full_name=body.full_name,
         password_hash=hash_password(body.password),
-        university=body.university,
+        school_id=school.school_id,
+        university=school.name,   # display name, authoritative from the school
         verification_code=code,
         verification_code_exp=datetime.now(timezone.utc) + _OTP_TTL,
     )

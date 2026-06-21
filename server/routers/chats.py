@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from db.models import Chat, Message, User
-from server.dependencies import get_verified_user, get_db
+from server.dependencies import get_blocked_user_ids, get_verified_user, get_db
 from server.schemas import ChatResponse, MessageResponse, SendMessageRequest
 
 router = APIRouter(prefix="/chats", tags=["chats"])
@@ -58,6 +58,11 @@ def send_message(
     db:           Session = Depends(get_db),
 ):
     chat = _get_or_403(chat_id, current_user, db)
+
+    other_id = chat.participant_2 if chat.participant_1 == current_user.user_id else chat.participant_1
+    blocked_ids = get_blocked_user_ids(current_user.user_id, db)
+    if other_id in blocked_ids:
+        raise HTTPException(status_code=403, detail="You can't message a blocked user")
 
     msg = Message(
         chat_id=chat.chat_id,

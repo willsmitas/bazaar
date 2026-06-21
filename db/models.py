@@ -10,7 +10,7 @@ from decimal import Decimal
 from typing import List, Optional
 
 from sqlalchemy import (
-    TIMESTAMP, Boolean, CheckConstraint, ForeignKey, Integer,
+    TIMESTAMP, Boolean, CheckConstraint, ForeignKey, Index, Integer,
     Numeric, String, Text, UniqueConstraint, func,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
@@ -69,6 +69,51 @@ class ReportStatus(str, enum.Enum):
     dismissed = "dismissed"
 
 
+class AdminRole(str, enum.Enum):
+    school_admin = "school_admin"   # can moderate within their own school only
+    global_admin = "global_admin"   # can moderate across all schools
+
+
+# =============================================================
+#  SCHOOL  (tenant)
+#  Each school is an isolated marketplace. A user is assigned to a
+#  school at registration based on their email domain; listings,
+#  search, and chat are all scoped to a single school.
+# =============================================================
+
+class School(Base):
+    __tablename__ = "schools"
+
+    school_id     : Mapped[uuid.UUID]     = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name          : Mapped[str]           = mapped_column(String(255), nullable=False, unique=True)   # 'Brown University'
+    slug          : Mapped[str]           = mapped_column(String(63),  nullable=False, unique=True)   # 'brown' (URLs/subdomains)
+
+    # Email domains that map to this school, e.g. {'brown.edu'}. A registrant's
+    # domain is matched against this list to assign their marketplace.
+    email_domains : Mapped[List[str]]     = mapped_column(ARRAY(Text), nullable=False)
+
+    # Branding — drives the per-school frontend theme (see index.html CSS vars).
+    primary_color : Mapped[str]           = mapped_column(String(9), nullable=False, default="#4E3629")
+    accent_color  : Mapped[str]           = mapped_column(String(9), nullable=False, default="#9E7E38")
+    emoji         : Mapped[Optional[str]] = mapped_column(String(16))
+    logo_url      : Mapped[Optional[str]] = mapped_column(Text)
+    is_active     : Mapped[bool]          = mapped_column(Boolean, nullable=False, default=True)
+
+    created_at    : Mapped[datetime]      = mapped_column(TIMESTAMPTZ, nullable=False, server_default=func.now())
+    updated_at    : Mapped[datetime]      = mapped_column(TIMESTAMPTZ, nullable=False, server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        # GIN index for the `domain = ANY(email_domains)` lookup at registration.
+        Index("idx_schools_email_domains", "email_domains", postgresql_using="gin"),
+    )
+
+    users    : Mapped[List["User"]]    = relationship("User",    back_populates="school")
+    listings : Mapped[List["Listing"]] = relationship("Listing", back_populates="school")
+
+    def __repr__(self) -> str:
+        return f"<School {self.name!r}>"
+
+
 # =============================================================
 #  USER
 # =============================================================
@@ -84,9 +129,10 @@ class User(Base):
     password_hash         : Mapped[str]                = mapped_column(String(255), nullable=False)
     profile_picture_url   : Mapped[Optional[str]]      = mapped_column(Text)
     bio                   : Mapped[Optional[str]]      = mapped_column(Text)
-    university            : Mapped[Optional[str]]      = mapped_column(String(255))
+    university            : Mapped[Optional[str]]      = mapped_column(String(255))  # display name, mirrors school.name
+    school_id             : Mapped[uuid.UUID]          = mapped_column(ForeignKey("schools.school_id"), nullable=False, index=True)
     email_verified        : Mapped[bool]               = mapped_column(Boolean, nullable=False, default=False)
-    is_admin              : Mapped[bool]               = mapped_column(Boolean, nullable=False, default=False)
+    admin_role            : Mapped[Optional[AdminRole]] = mapped_column(String(20))  # NULL = regular user
 
     # One-time codes (cleared after use)
     verification_code     : Mapped[Optional[str]]      = mapped_column(String(6))
@@ -112,12 +158,25 @@ class User(Base):
     last_active_at        : Mapped[Optional[datetime]] = mapped_column(TIMESTAMPTZ)
 
     # Relationships
+    school           : Mapped["School"]        = relationship("School", back_populates="users")
     listings         : Mapped[List["Listing"]] = relationship("Listing", back_populates="seller", cascade="all, delete-orphan")
     ratings_received : Mapped[List["Rating"]]  = relationship("Rating", foreign_keys="[Rating.ratee_id]", back_populates="ratee")
 
     @property
     def is_active(self) -> bool:
         return self.account_status == AccountStatus.active
+
+    @property
+    def is_admin(self) -> bool:
+        return self.admin_role is not None
+
+    @property
+    def is_global_admin(self) -> bool:
+        return self.admin_role == AdminRole.global_admin
+
+    @property
+    def is_school_admin(self) -> bool:
+        return self.admin_role == AdminRole.school_admin
 
     def __repr__(self) -> str:
         return f"<User {self.email!r}>"
@@ -132,6 +191,9 @@ class Listing(Base):
 
     listing_id  : Mapped[uuid.UUID]               = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     seller_id   : Mapped[uuid.UUID]               = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    # Denormalized from the seller so the browse query can scope by school in one
+    # indexed filter without joining users on every listings page load.
+    school_id   : Mapped[uuid.UUID]               = mapped_column(ForeignKey("schools.school_id"), nullable=False)
 
     type        : Mapped[ListingType]             = mapped_column(String(20), nullable=False, default=ListingType.sell)
     title       : Mapped[str]                     = mapped_column(String(255), nullable=False)
@@ -154,9 +216,12 @@ class Listing(Base):
     __table_args__ = (
         CheckConstraint("price_min >= 0",         name="ck_price_min_positive"),
         CheckConstraint("price_max >= price_min", name="ck_price_range_valid"),
+        # Primary browse query: active listings for one school, newest first.
+        Index("idx_listings_school_status", "school_id", "status", "created_at"),
     )
 
     seller       : Mapped["User"]             = relationship("User", back_populates="listings")
+    school       : Mapped["School"]           = relationship("School", back_populates="listings")
     transactions : Mapped[List["Transaction"]] = relationship("Transaction", back_populates="listing")
 
     def __repr__(self) -> str:
@@ -309,3 +374,29 @@ class Report(Base):
 
     def __repr__(self) -> str:
         return f"<Report {self.report_id} ({self.status})>"
+
+
+# =============================================================
+#  BLOCKS
+#  Bidirectional: if A blocks B, neither sees the other's listings,
+#  and neither can start new transactions/chats with the other.
+# =============================================================
+
+class Block(Base):
+    __tablename__ = "blocks"
+
+    block_id   : Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    blocker_id : Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    blocked_id : Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    created_at : Mapped[datetime]  = mapped_column(TIMESTAMPTZ, nullable=False, server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("blocker_id", "blocked_id", name="uq_block_pair"),
+        CheckConstraint("blocker_id <> blocked_id",  name="ck_no_self_block"),
+    )
+
+    blocker : Mapped["User"] = relationship("User", foreign_keys="[Block.blocker_id]")
+    blocked : Mapped["User"] = relationship("User", foreign_keys="[Block.blocked_id]")
+
+    def __repr__(self) -> str:
+        return f"<Block {self.blocker_id} → {self.blocked_id}>"

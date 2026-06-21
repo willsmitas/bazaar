@@ -35,9 +35,9 @@ class Settings(BaseSettings):
     secret_key:                str = "change-me-before-deploying"
     access_token_ttl_minutes:  int = 60 * 24 * 7   # 7 days
     refresh_token_ttl_days:    int = 30
-    # Comma-separated email domains allowed to register (university gating).
-    # Set to "" to allow any domain.
-    allowed_email_domains:     str = "brown.edu"
+    # Note: which schools (and therefore which email domains) may register is now
+    # data-driven via the `schools` table, not a static env var. See
+    # server/routers/auth.py:register and db/migrate_add_schools.py.
 
     # ── Email ─────────────────────────────────────────────────────────────────
     # Three ways to send, chosen in this order (see server/email.py):

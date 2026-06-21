@@ -9,7 +9,7 @@ account uses the password "testpass123" and is pre-verified.
 from decimal import Decimal
 
 from db.database import SessionLocal
-from db.models import ItemCondition, Listing, ListingStatus, ListingType, User
+from db.models import ItemCondition, Listing, ListingStatus, ListingType, School, User
 from server.security import hash_password
 
 PASSWORD = "testpass123"
@@ -56,6 +56,21 @@ LISTINGS = [
 def main() -> None:
     db = SessionLocal()
     try:
+        # Ensure the Brown school exists — every seeded row belongs to it.
+        brown = db.query(School).filter(School.slug == "brown").first()
+        if not brown:
+            brown = School(
+                name="Brown University",
+                slug="brown",
+                email_domains=["brown.edu"],
+                primary_color="#4E3629",
+                accent_color="#9E7E38",
+                emoji="🐻",
+            )
+            db.add(brown)
+            db.flush()                # assign school_id before users reference it
+            print("created school Brown University")
+
         users = {}
         for email, name in USERS:
             user = db.query(User).filter(User.email == email).first()
@@ -64,7 +79,8 @@ def main() -> None:
                     email=email,
                     full_name=name,
                     password_hash=hash_password(PASSWORD),
-                    university="Brown University",
+                    school_id=brown.school_id,
+                    university=brown.name,
                     email_verified=True,
                 )
                 db.add(user)
@@ -84,6 +100,7 @@ def main() -> None:
                 continue
             db.add(Listing(
                 seller_id=seller.user_id,
+                school_id=seller.school_id,
                 type=ltype,
                 title=title,
                 description=desc,
