@@ -505,6 +505,117 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
     </div>
 
     <!-- ═══════════════════════════════
+         PRIVACY & SAFETY OVERLAY
+    ════════════════════════════════ -->
+    <div class="cov" id="privacyOverlay">
+      <div class="chdr">
+        <button class="cback" onclick="closePrivacy()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <div class="chdr-i">
+          <h3>Privacy &amp; Safety</h3>
+          <p>How we protect you on Bazaar</p>
+        </div>
+      </div>
+      <div class="content" style="overflow-y:auto;flex:1;">
+        <div class="tip">
+          <span class="tip-i">🔒</span>
+          <span class="tip-t">You stay <strong>anonymous</strong> on every listing. Your name is only shared with the other person once you both lock in a price.</span>
+        </div>
+
+        <div class="card">
+          <div style="font:600 18px var(--serif);color:var(--txt1);margin-bottom:8px;">Your privacy, in plain terms</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">This is a sample privacy statement for the Bazaar prototype. The points below describe how the app is designed to handle your information.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">🎓 Verified students only</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">We verify a valid university email before you can buy or sell, so you're only ever dealing with people from your own campus community.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">🕶️ Anonymous by default</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">Listings never show your name or photo. Identities are revealed to each other only after a price is agreed and locked — never before.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">💳 Secure payments</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">Payments are processed in-app. We don't store your full card details, and your payment information is never shared with the other party.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">🛡️ Blocking &amp; reporting</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">You can block or report anyone from a chat at any time. Blocked users can't see your listings and you won't see theirs. Reports go to your campus moderators for review.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">📂 Your data</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">We only collect what's needed to run the marketplace — your listings, chats, and ratings. We don't sell your personal data to third parties.</p>
+        </div>
+
+        <p style="font-size:12px;color:var(--txt3);line-height:1.6;text-align:center;padding:4px 8px 24px;">This is placeholder text for demonstration purposes and is not a legally binding privacy policy.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         TERMS OF SERVICE OVERLAY
+    ════════════════════════════════ -->
+    <div class="cov" id="termsOverlay">
+      <div class="chdr">
+        <button class="cback" onclick="closeTerms()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <div class="chdr-i">
+          <h3>Terms of Service</h3>
+          <p>The rules of the marketplace</p>
+        </div>
+      </div>
+      <div class="content" style="overflow-y:auto;flex:1;">
+        <div class="tip">
+          <span class="tip-i">📜</span>
+          <span class="tip-t">By using Bazaar, you agree to these terms. They keep the marketplace fair and safe for everyone on campus.</span>
+        </div>
+
+        <div class="card">
+          <div style="font:600 18px var(--serif);color:var(--txt1);margin-bottom:8px;">Agreement to terms</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">This is a sample terms-of-service statement for the Bazaar prototype. Creating an account or using the app means you accept the points below.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">1. Eligibility</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">You must be a current student with a valid university email to buy or sell. One account per person — accounts are personal and may not be shared or transferred.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">2. Listings &amp; conduct</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">List only items you own and are legally allowed to sell. No illegal goods, weapons, or prohibited substances. Describe items honestly and treat other students with respect.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">3. Transactions &amp; fees</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">Payments run through the app. Bazaar charges a small commission on each completed sale, shown before you lock in a price. You're responsible for meeting up safely and completing the exchange.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">4. Anonymity &amp; identity</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">Listings are anonymous until both parties agree on a price. You agree not to attempt to identify or contact other users outside of the agreed exchange.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">5. Moderation</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">We may remove listings, or suspend or ban accounts, that violate these terms or are reported by other students. Campus moderators review reports and act at their discretion.</p>
+        </div>
+
+        <div class="card">
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">6. Disclaimer</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">Bazaar is a platform connecting buyers and sellers; we don't own or inspect the items listed. Trades are made at your own risk. The service is provided "as is" without warranties.</p>
+        </div>
+
+        <p style="font-size:12px;color:var(--txt3);line-height:1.6;text-align:center;padding:4px 8px 24px;">This is placeholder text for demonstration purposes and is not a legally binding agreement.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
          SCREEN 1 — LIST ITEM
     ════════════════════════════════ -->
     <div class="screen active" id="screen-list">
@@ -723,13 +834,13 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
             <div class="mrow-l"><div class="mico">🚫</div><span class="mlbl">Blocked Users</span></div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </div>
-          <div class="mrow">
+          <div class="mrow" onclick="openPrivacy()">
             <div class="mrow-l"><div class="mico">🔒</div><span class="mlbl">Privacy &amp; Safety</span></div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </div>
-          <div class="mrow">
-            <div class="mrow-l"><div class="mico">🏫</div><span class="mlbl">University Email</span></div>
-            <span class="vbadge">Verified</span>
+          <div class="mrow" onclick="openTerms()">
+            <div class="mrow-l"><div class="mico">📜</div><span class="mlbl">Terms of Service</span></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </div>
           <div class="mrow" onclick="signOut()">
             <div class="mrow-l">
@@ -1552,6 +1663,12 @@ async function blockFromChat(){
 
 function openBlockedUsers(){ document.getElementById('blockedOverlay').classList.add('open'); loadBlockedUsers(); }
 function closeBlockedUsers(){ document.getElementById('blockedOverlay').classList.remove('open'); }
+
+function openPrivacy(){ document.getElementById('privacyOverlay').classList.add('open'); }
+function closePrivacy(){ document.getElementById('privacyOverlay').classList.remove('open'); }
+
+function openTerms(){ document.getElementById('termsOverlay').classList.add('open'); }
+function closeTerms(){ document.getElementById('termsOverlay').classList.remove('open'); }
 
 async function loadBlockedUsers(){
   const body = document.getElementById('blockedBody');
