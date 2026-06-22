@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Bazaar — Midnight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0B0C12; --bg2:#12141D; --glass:rgba(255,255,255,.05); --glass-line:rgba(255,255,255,.10);
+  --txt:#EDEEF5; --sub:#9AA0B5; --faint:#646A82;
+  --v1:#7C6CFF; --v2:#5BE2D0; --grad:linear-gradient(120deg,#7C6CFF,#5BE2D0);
+  --green:#36D399; --font:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#05060A;font-family:var(--font);color:var(--txt);min-height:100vh;padding:46px 24px 64px;letter-spacing:-.01em;}
+.page-head{max-width:1200px;margin:0 auto 40px;text-align:center;}
+.page-kicker{font:700 12px var(--font);letter-spacing:2px;text-transform:uppercase;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.page-title{font:800 40px var(--font);letter-spacing:-1.5px;margin:8px 0 10px;color:#fff;}
+.page-sub{font-size:15px;color:var(--sub);max-width:560px;margin:0 auto;line-height:1.6;}
+.gallery{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;max-width:1500px;margin:0 auto;}
+.frame{width:340px;}
+.frame-label{text-align:center;font:700 11px var(--font);letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin-bottom:12px;}
+.phone{width:340px;height:720px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;
+  background:var(--bg);border:9px solid #1b1d28;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(124,108,255,.18);}
+.scr{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;
+  background:
+    radial-gradient(420px 300px at -10% -8%,rgba(124,108,255,.25),transparent 60%),
+    radial-gradient(420px 320px at 110% 4%,rgba(91,226,208,.16),transparent 55%),
+    var(--bg);}
+.status{display:flex;justify-content:space-between;align-items:center;padding:13px 24px 6px;font:600 13px var(--font);color:var(--txt);}
+.status .r{color:var(--faint);font-size:11px;letter-spacing:1px;}
+
+.hdr{padding:6px 20px 14px;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;}
+.brand{font:800 24px var(--font);letter-spacing:-1px;color:#fff;}
+.brand .b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.icoset{display:flex;gap:8px;}
+.ico{width:38px;height:38px;border-radius:13px;background:var(--glass);border:1px solid var(--glass-line);display:flex;align-items:center;justify-content:center;color:var(--txt);position:relative;font-size:15px;backdrop-filter:blur(8px);}
+.ico .dot{position:absolute;top:8px;right:9px;width:7px;height:7px;background:var(--v2);border-radius:50%;box-shadow:0 0 8px var(--v2);}
+.search{margin-top:14px;display:flex;align-items:center;gap:10px;background:var(--glass);border:1px solid var(--glass-line);border-radius:15px;padding:13px 15px;color:var(--faint);font-size:14px;font-weight:500;backdrop-filter:blur(8px);}
+
+.body{flex:1;overflow-y:auto;padding:4px 20px 90px;}
+.body::-webkit-scrollbar{display:none;}
+.note{display:flex;gap:10px;align-items:center;border-radius:16px;padding:12px 14px;margin:10px 0 18px;
+  background:linear-gradient(120deg,rgba(124,108,255,.18),rgba(91,226,208,.10));border:1px solid var(--glass-line);}
+.note .it{width:30px;height:30px;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;color:#0B0C12;}
+.note .tx{font-size:12px;color:var(--txt);line-height:1.45;font-weight:500;}
+.sec{display:flex;align-items:center;justify-content:space-between;margin:18px 0 12px;}
+.sec-t{font:700 16px var(--font);letter-spacing:-.4px;color:#fff;}
+.sec-l{font:600 12px var(--font);background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+.glasscard{background:var(--glass);border:1px solid var(--glass-line);border-radius:18px;backdrop-filter:blur(12px);}
+.item{display:flex;gap:13px;padding:12px;margin-bottom:11px;align-items:center;}
+.thumb{width:60px;height:60px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:27px;
+  background:linear-gradient(140deg,rgba(124,108,255,.30),rgba(91,226,208,.18));border:1px solid var(--glass-line);}
+.item-main{flex:1;min-width:0;}
+.item-t{font:600 14px var(--font);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.item-d{font-size:11.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:7px;}
+.item-foot{display:flex;align-items:center;gap:8px;}
+.price{font:800 15px var(--font);background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.tag{font:700 9px var(--font);letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:7px;border:1px solid var(--glass-line);color:var(--sub);}
+.req{display:flex;align-items:center;gap:12px;padding:13px;margin-bottom:10px;}
+.req .rm{flex:1;min-width:0;}.req .rt{font:600 13px var(--font);}.req .rb{font-size:12px;color:var(--v2);font-weight:600;}
+
+/* buttons */
+.btn{display:block;width:100%;text-align:center;padding:14px;border-radius:14px;border:none;font:700 14px var(--font);letter-spacing:-.2px;color:#0B0C12;}
+.btn-p{background:var(--grad);box-shadow:0 8px 24px rgba(124,108,255,.35);}
+.btn-o{background:var(--glass);color:var(--txt);border:1px solid var(--glass-line);}
+.btn-sm{padding:9px 15px;width:auto;border-radius:10px;font-size:12px;}
+
+/* form */
+.lbl{font:600 11px var(--font);letter-spacing:.5px;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:8px;}
+.fld{margin-bottom:16px;}
+.inp{width:100%;padding:13px 14px;border:1px solid var(--glass-line);border-radius:13px;background:var(--glass);font:500 14px var(--font);color:var(--txt);}
+.inp::placeholder{color:var(--faint);}
+.photo{height:140px;border:1.5px dashed var(--glass-line);border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--sub);background:var(--glass);margin:6px 0 18px;}
+.photo .pi{width:48px;height:48px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:22px;color:#0B0C12;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{padding:9px 14px;border-radius:11px;font:600 12px var(--font);color:var(--sub);background:var(--glass);border:1px solid var(--glass-line);}
+.chip.on{background:var(--grad);color:#0B0C12;border-color:transparent;}
+.row2{display:flex;gap:10px;}.row2>*{flex:1;}
+
+/* chat */
+.chat-hdr{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--glass-line);}
+.chat-hdr .bk{font-size:22px;color:var(--sub);}
+.cav{width:40px;height:40px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;font:700 15px var(--font);color:#0B0C12;}
+.chat-hdr h3{font:700 15px var(--font);}
+.chat-hdr p{font-size:11px;color:var(--faint);font-weight:500;}
+.ibn{display:flex;align-items:center;gap:12px;margin:14px 18px 0;padding:12px;border-radius:16px;}
+.ibn .ic{width:42px;height:42px;border-radius:12px;background:linear-gradient(140deg,rgba(124,108,255,.30),rgba(91,226,208,.18));border:1px solid var(--glass-line);display:flex;align-items:center;justify-content:center;font-size:21px;}
+.ibn h4{font:600 13px var(--font);}
+.ibn p{font-size:11px;color:var(--sub);}
+.ibn .pp{margin-left:auto;background:var(--grad);color:#0B0C12;padding:7px 13px;border-radius:11px;font:800 14px var(--font);}
+.msgs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:8px;}
+.msgs::-webkit-scrollbar{display:none;}
+.m{max-width:76%;padding:11px 14px;font-size:13.5px;line-height:1.45;border-radius:18px;}
+.m.them{background:var(--glass);border:1px solid var(--glass-line);align-self:flex-start;border-bottom-left-radius:5px;}
+.m.me{background:var(--grad);color:#0B0C12;align-self:flex-end;border-bottom-right-radius:5px;font-weight:500;}
+.sys{align-self:center;font:600 11px var(--font);color:var(--v2);background:rgba(91,226,208,.12);border:1px solid var(--glass-line);padding:6px 14px;border-radius:20px;}
+.chat-foot{border-top:1px solid var(--glass-line);padding:12px 16px;background:rgba(11,12,18,.6);backdrop-filter:blur(10px);}
+.lockrow{display:flex;gap:8px;margin-bottom:10px;}
+.inbar{display:flex;gap:10px;align-items:center;}
+.inbar .ti{flex:1;padding:12px 15px;border-radius:22px;background:var(--glass);border:1px solid var(--glass-line);font-size:13px;color:var(--faint);font-weight:500;}
+.snd{width:42px;height:42px;border-radius:50%;background:var(--grad);color:#0B0C12;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* profile */
+.phdr{padding:20px 22px 6px;text-align:center;}
+.pav{width:78px;height:78px;border-radius:50%;background:var(--grad);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font:800 28px var(--font);color:#0B0C12;box-shadow:0 0 30px rgba(124,108,255,.5);}
+.pname{font:800 21px var(--font);letter-spacing:-.6px;color:#fff;}
+.puni{font-size:12px;color:var(--sub);font-weight:600;margin-top:4px;}
+.prat{font-size:12px;color:var(--faint);margin-top:6px;}
+.prat .st{color:var(--v2);}
+.stats{display:flex;gap:10px;margin:18px 0 6px;padding:0 22px;}
+.stat{flex:1;border-radius:16px;padding:14px 6px;text-align:center;background:var(--glass);border:1px solid var(--glass-line);}
+.stat .v{font:800 20px var(--font);background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.stat .l{font:600 9px var(--font);text-transform:uppercase;letter-spacing:1px;color:var(--faint);margin-top:3px;}
+.mlist{padding:2px 16px;margin-top:6px;}
+.mrow{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--glass-line);}
+.mrow:last-child{border:none;}
+.mrow .lft{display:flex;align-items:center;gap:12px;}
+.mrow .mi{width:34px;height:34px;border-radius:10px;background:var(--glass);border:1px solid var(--glass-line);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.mrow .ml{font-size:14px;font-weight:500;}
+.vbadge{font:700 10px var(--font);color:var(--green);background:rgba(54,211,153,.12);padding:4px 9px;border-radius:8px;}
+
+/* floating glass nav */
+.nav{position:absolute;left:16px;right:16px;bottom:14px;display:flex;justify-content:space-around;
+  background:rgba(18,20,29,.7);border:1px solid var(--glass-line);border-radius:22px;padding:10px 6px;backdrop-filter:blur(18px);box-shadow:0 12px 30px rgba(0,0,0,.4);}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--faint);font:600 9.5px var(--font);}
+.nav button.on{color:#fff;}
+.nav button.on .nic{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.nav .nic{font-size:18px;}
+</style>
+</head>
+<body>
+<div class="page-head">
+  <div class="page-kicker">Design 03</div>
+  <h1 class="page-title">Midnight</h1>
+  <p class="page-sub">A dark, premium take — frosted-glass cards over a violet-to-teal aurora, gradient pricing, glowing accents, and a floating pill nav. Reads like a high-end fintech app.</p>
+</div>
+
+<div class="gallery">
+
+  <!-- BROWSE -->
+  <div class="frame">
+    <div class="frame-label">Browse</div>
+    <div class="phone"><div class="scr">
+      <div class="status"><span>9:41</span><span class="r">5G ▮▮▮</span></div>
+      <div class="hdr">
+        <div class="hdr-top"><div class="brand">Ba<span class="b">zaar</span></div>
+          <div class="icoset"><div class="ico">⚙</div><div class="ico">🔔<span class="dot"></span></div></div></div>
+        <div class="search">⌕&nbsp; Search listings…</div>
+      </div>
+      <div class="body">
+        <div class="note"><div class="it">🔒</div><div class="tx">Anonymous until you both agree to meet up.</div></div>
+        <div class="sec"><div class="sec-t">Available Now</div><div class="sec-l">See all</div></div>
+        <div class="glasscard item"><div class="thumb">🧮</div><div class="item-main"><div class="item-t">TI-84 Plus Calculator</div><div class="item-d">Like new · Electronics</div><div class="item-foot"><span class="price">$40–45</span><span class="tag">For Sale</span></div></div></div>
+        <div class="glasscard item"><div class="thumb">🎧</div><div class="item-main"><div class="item-t">Sony WH-1000XM4</div><div class="item-d">Like new · Audio</div><div class="item-foot"><span class="price">$120–140</span><span class="tag">For Sale</span></div></div></div>
+        <div class="glasscard item"><div class="thumb">📚</div><div class="item-main"><div class="item-t">Organic Chemistry 8e</div><div class="item-d">Good · Books</div><div class="item-foot"><span class="price">$60</span><span class="tag">For Sale</span></div></div></div>
+        <div class="sec"><div class="sec-t">Open Requests</div><div class="sec-l">Anonymous</div></div>
+        <div class="glasscard req"><div class="thumb" style="width:44px;height:44px;font-size:20px;">🚲</div><div class="rm"><div class="rt">Used commuter bike</div><div class="rb">Budget $80–120</div></div><button class="btn btn-o btn-sm">Offer</button></div>
+      </div>
+      <nav class="nav">
+        <button class="on"><span class="nic">⌂</span>Browse</button>
+        <button><span class="nic">＋</span>Sell</button>
+        <button><span class="nic">✉</span>Chats</button>
+        <button><span class="nic">◍</span>Profile</button>
+      </nav>
+    </div></div>
+  </div>
+
+  <!-- POST -->
+  <div class="frame">
+    <div class="frame-label">List an Item</div>
+    <div class="phone"><div class="scr">
+      <div class="status"><span>9:41</span><span class="r">5G ▮▮▮</span></div>
+      <div class="hdr"><div class="hdr-top"><div class="brand">New <span class="b">listing</span></div></div></div>
+      <div class="body" style="padding-bottom:28px;">
+        <div class="photo"><span class="pi">＋</span><span style="font-size:13px;font-weight:600;">Add Photos</span><span style="font-size:11px;">Tap to upload</span></div>
+        <div class="fld"><label class="lbl">Item name</label><input class="inp" value="TI-84 Plus Calculator"/></div>
+        <div class="fld"><label class="lbl">Description</label><input class="inp" value="Like new, comes with case."/></div>
+        <div class="fld"><label class="lbl">Category</label><div class="chips">
+          <span class="chip">📚 Books</span><span class="chip on">💻 Electronics</span><span class="chip">👕 Clothing</span><span class="chip">🪑 Furniture</span></div></div>
+        <div class="fld"><label class="lbl">Condition</label><div class="chips">
+          <span class="chip">New</span><span class="chip on">Like New</span><span class="chip">Good</span><span class="chip">Fair</span></div></div>
+        <div class="fld"><label class="lbl">Price range</label><div class="row2"><input class="inp" value="$40"/><input class="inp" value="$45"/></div></div>
+        <button class="btn btn-p">Post Listing</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="frame">
+    <div class="frame-label">Negotiate</div>
+    <div class="phone"><div class="scr">
+      <div class="status"><span>9:41</span><span class="r">5G ▮▮▮</span></div>
+      <div class="chat-hdr"><span class="bk">‹</span><div class="cav">A</div><div><h3>Anon Buyer #1</h3><p>Negotiating · TI-84 Calculator</p></div></div>
+      <div class="glasscard ibn"><div class="ic">🧮</div><div><h4>TI-84 Plus Calculator</h4><p>Like New · Electronics</p></div><div class="pp">$45</div></div>
+      <div class="msgs">
+        <div class="m them">Hi! Is the TI-84 still available?</div>
+        <div class="m me">It is — barely used, comes with the case.</div>
+        <div class="m them">Would you take $40?</div>
+        <div class="sys">Buyer proposed $40</div>
+        <div class="m me">Let's meet at $42?</div>
+        <div class="m them">Deal. Where on campus?</div>
+      </div>
+      <div class="chat-foot">
+        <div class="lockrow"><button class="btn btn-o btn-sm" style="flex:1;">Propose price</button><button class="btn btn-p btn-sm" style="flex:1;">Accept & lock</button></div>
+        <div class="inbar"><div class="ti">Message…</div><div class="snd">➤</div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="frame">
+    <div class="frame-label">Profile</div>
+    <div class="phone"><div class="scr">
+      <div class="status"><span>9:41</span><span class="r">5G ▮▮▮</span></div>
+      <div class="phdr">
+        <div class="pav">WS</div><div class="pname">William Smitas</div>
+        <div class="puni">🐻 Brown University</div>
+        <div class="prat"><span class="st">★★★★★</span> 4.8 · 23 reviews</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v">5</div><div class="l">Listed</div></div>
+        <div class="stat"><div class="v">12</div><div class="l">Sold</div></div>
+        <div class="stat"><div class="v">$480</div><div class="l">Earned</div></div>
+      </div>
+      <div class="body" style="padding-top:14px;">
+        <div class="sec"><div class="sec-t">My Listings</div><div class="sec-l">+ New</div></div>
+        <div class="glasscard item"><div class="thumb">🎧</div><div class="item-main"><div class="item-t">Sony WH-1000XM4</div><div class="item-foot" style="margin-top:5px;"><span class="price">$120</span><span class="tag">Active</span></div></div></div>
+        <div class="sec"><div class="sec-t">Settings</div></div>
+        <div class="glasscard mlist">
+          <div class="mrow"><div class="lft"><div class="mi">🔔</div><div class="ml">Notifications</div></div><span style="color:var(--faint);">›</span></div>
+          <div class="mrow"><div class="lft"><div class="mi">💳</div><div class="ml">Payment Methods</div></div><span style="color:var(--faint);">›</span></div>
+          <div class="mrow"><div class="lft"><div class="mi">🏫</div><div class="ml">University Email</div></div><span class="vbadge">Verified</span></div>
+        </div>
+      </div>
+      <nav class="nav">
+        <button><span class="nic">⌂</span>Browse</button>
+        <button><span class="nic">＋</span>Sell</button>
+        <button><span class="nic">✉</span>Chats</button>
+        <button class="on"><span class="nic">◍</span>Profile</button>
+      </nav>
+    </div></div>
+  </div>
+
+</div>
+</body>
+</html>
