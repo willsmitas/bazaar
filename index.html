@@ -232,12 +232,13 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 .sysmsg{background:rgba(78,54,41,.07);border-radius:10px;padding:7px 14px;font:600 12px var(--font);color:var(--bg);text-align:center;align-self:center;}
 
 .cinbar{
-  display:flex;align-items:center;gap:8px;padding:10px 14px 14px;
+  display:flex;align-items:flex-end;gap:8px;padding:10px 14px 14px;
   background:var(--surface);border-top:1px solid var(--border);flex-shrink:0;
 }
 .cinp{
   flex:1;padding:10px 14px;border:1.5px solid var(--border);border-radius:20px;
   font:400 14px var(--font);background:var(--cream);outline:none;color:var(--txt1);
+  resize:none;overflow-y:hidden;min-height:38px;max-height:120px;line-height:1.4;
 }
 .cinp:focus{border-color:var(--bg);}
 .sbtn{
@@ -458,7 +459,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         <button class="ibtn" style="background:rgba(78,54,41,.08);color:var(--bg);flex-shrink:0;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
         </button>
-        <input type="text" class="cinp" id="cinp" placeholder="Message…"/>
+        <textarea class="cinp" id="cinp" rows="1" placeholder="Message…"></textarea>
         <button class="sbtn" onclick="sendMsg()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
@@ -570,7 +571,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           </div>
         </div>
 
-        <button class="btn btn-p" onclick="postListing()">Post Listing</button>
+        <button class="btn btn-p" onclick="postListing(this)">Post Listing</button>
         <div style="height:24px;"></div>
       </div>
     </div>
@@ -617,7 +618,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           </div>
           <div class="row2">
             <button class="btn btn-o" onclick="toggleRform()">Cancel</button>
-            <button class="btn btn-p" onclick="submitReq()">Post Request</button>
+            <button class="btn btn-p" onclick="submitReq(this)">Post Request</button>
           </div>
         </div>
 
@@ -1046,6 +1047,16 @@ function chosenChip(containerId){
   return el ? el.textContent.trim() : null;
 }
 
+/* Prevent double-submission: ignore extra taps while an async action is in
+   flight, and show a busy label on the triggering button meanwhile. */
+async function once(btn, busyLabel, fn){
+  if (btn && btn.disabled) return;        // already running — drop the extra tap
+  let orig;
+  if (btn){ orig = btn.textContent; btn.disabled = true; btn.textContent = busyLabel; }
+  try { return await fn(); }
+  finally { if (btn){ btn.disabled = false; btn.textContent = orig; } }
+}
+
 /* ════════════════════════════════════════════════════════════
    BROWSE  (Available Now + Open Requests)
 ════════════════════════════════════════════════════════════ */
@@ -1104,7 +1115,10 @@ function renderReqs(arr){
 }
 
 /* Tap a listing → open (or create) a transaction + chat with the seller */
+let _startingChat = false;
 async function startChat(listingId){
+  if (_startingChat) return;        // ignore rapid double-taps on a listing card
+  _startingChat = true;
   try {
     const txn = await Api.createTransaction(listingId);
     await loadChats();
@@ -1112,6 +1126,7 @@ async function startChat(listingId){
     switchScreen('transactions');
     if (entry) openChat(entry.chat.chat_id);
   } catch (e) { showToast(e.message); }
+  finally { _startingChat = false; }
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1131,7 +1146,7 @@ function onPhotoPicked(e){
     <div class="pu-overlay" style="border-radius:calc(var(--radius)-2px);">📷 Change Photo</div>`;
 }
 
-async function postListing(){
+async function postListing(btn){
   const title = val('iname');
   if (!title) { showToast('Add an item name first'); return; }
   const catRaw  = chosenChip('catChips');
@@ -1148,12 +1163,14 @@ async function postListing(){
     price_min: pmin !== '' ? Number(pmin) : null,
     price_max: pmax !== '' ? Number(pmax) : null,
   };
-  try {
-    const listing = await Api.createListing(body);
-    if (photoFile) { try { await Api.uploadListingImage(listing.listing_id, photoFile); } catch {} }
-    document.getElementById('modal').classList.add('open');
-    await Promise.all([ loadListings(), loadProfile() ]);
-  } catch (e) { showToast(e.message); }
+  await once(btn, 'Posting…', async () => {
+    try {
+      const listing = await Api.createListing(body);
+      if (photoFile) { try { await Api.uploadListingImage(listing.listing_id, photoFile); } catch {} }
+      document.getElementById('modal').classList.add('open');
+      await Promise.all([ loadListings(), loadProfile() ]);
+    } catch (e) { showToast(e.message); }
+  });
 }
 
 function closeModal(){
@@ -1177,27 +1194,29 @@ function toggleRform(){
   f.classList.toggle('open');
   if (f.classList.contains('open')) f.scrollIntoView({ behavior:'smooth' });
 }
-async function submitReq(){
+async function submitReq(btn){
   const title = val('rqTitle');
   if (!title) { showToast('What are you looking for?'); return; }
   const pmin = document.getElementById('rqMin').value;
   const pmax = document.getElementById('rqMax').value;
-  try {
-    await Api.createListing({
-      type: 'request',
-      title,
-      description: document.getElementById('rqDesc').value.trim() || null,
-      price_min: pmin !== '' ? Number(pmin) : null,
-      price_max: pmax !== '' ? Number(pmax) : null,
-    });
-    document.getElementById('rqTitle').value = '';
-    document.getElementById('rqDesc').value  = '';
-    document.getElementById('rqMin').value   = '';
-    document.getElementById('rqMax').value   = '';
-    toggleRform();
-    showToast('Request posted!');
-    await loadListings();
-  } catch (e) { showToast(e.message); }
+  await once(btn, 'Posting…', async () => {
+    try {
+      await Api.createListing({
+        type: 'request',
+        title,
+        description: document.getElementById('rqDesc').value.trim() || null,
+        price_min: pmin !== '' ? Number(pmin) : null,
+        price_max: pmax !== '' ? Number(pmax) : null,
+      });
+      document.getElementById('rqTitle').value = '';
+      document.getElementById('rqDesc').value  = '';
+      document.getElementById('rqMin').value   = '';
+      document.getElementById('rqMax').value   = '';
+      toggleRform();
+      showToast('Request posted!');
+      await loadListings();
+    } catch (e) { showToast(e.message); }
+  });
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1382,6 +1401,7 @@ async function sendMsg(){
   const txt = inp.value.trim();
   if (!txt || !curChatId) return;
   inp.value = '';
+  inp.style.height = 'auto';
   // Prefer the live socket — the server echoes the saved message back to render it.
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ content: txt }));
@@ -1633,7 +1653,13 @@ function showToast(msg){
 }
 
 /* ════ INIT ════ */
-document.getElementById('cinp').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+document.getElementById('cinp').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+document.getElementById('cinp').addEventListener('input', function(){
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
 document.getElementById('ve-code').addEventListener('keydown', e => { if (e.key === 'Enter') doVerify(); });
 document.getElementById('li-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
