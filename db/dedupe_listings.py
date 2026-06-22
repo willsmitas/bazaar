@@ -67,7 +67,9 @@ def main(argv=None) -> None:
             dupes = [r for r in rows if r.listing_id != keeper.listing_id]
             total += len(dupes)
 
-            print(f"{title!r} ({ltype.value}) — {len(rows)} copies; "
+            # `type` is a plain String column, so it loads back as a str ('sell'/'request').
+            type_label = getattr(ltype, "value", ltype)
+            print(f"{title!r} ({type_label}) — {len(rows)} copies; "
                   f"keeping {keeper.listing_id} ({keeper.created_at:%Y-%m-%d %H:%M})")
             for d in dupes:
                 verb = "removed" if apply else "would remove"
