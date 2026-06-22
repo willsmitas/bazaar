@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Bazaar — Heritage Editorial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ivory:#F6F2EA; --paper:#FFFFFF; --ink:#1C140C; --espresso:#3D2B1F;
+  --brass:#A9874E; --brass-dk:#8A6C3A; --line:#E5DCCB; --muted:#7A6E5E; --faint:#A89C88;
+  --serif:'Fraunces',Georgia,serif; --sans:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#EDE6D8;font-family:var(--sans);color:var(--ink);
+  background-image:radial-gradient(circle at 20% 10%,#F2EADB,#E6DCC9);min-height:100vh;padding:46px 24px 64px;}
+.page-head{max-width:1200px;margin:0 auto 40px;text-align:center;}
+.page-kicker{font:600 12px var(--sans);letter-spacing:3px;text-transform:uppercase;color:var(--brass-dk);}
+.page-title{font:600 40px var(--serif);margin:8px 0 10px;color:var(--ink);}
+.page-sub{font-size:15px;color:var(--muted);max-width:560px;margin:0 auto;line-height:1.6;}
+.gallery{display:flex;flex-wrap:wrap;gap:34px;justify-content:center;max-width:1500px;margin:0 auto;}
+.frame{width:340px;}
+.frame-label{text-align:center;font:600 11px var(--sans);letter-spacing:2px;text-transform:uppercase;color:var(--brass-dk);margin-bottom:12px;}
+.phone{width:340px;height:720px;background:var(--ivory);border-radius:42px;overflow:hidden;position:relative;
+  box-shadow:0 30px 70px rgba(60,40,20,.28),0 0 0 1px rgba(0,0,0,.04);display:flex;flex-direction:column;border:9px solid #221710;}
+.scr{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.status{display:flex;justify-content:space-between;align-items:center;padding:12px 22px 6px;font:600 12px var(--sans);color:var(--ink);}
+.status .dots{letter-spacing:1px;color:var(--faint);}
+
+/* header */
+.hdr{padding:8px 22px 18px;border-bottom:1px solid var(--line);}
+.hdr-top{display:flex;align-items:flex-start;justify-content:space-between;}
+.brand{font:600 30px var(--serif);letter-spacing:-.5px;line-height:1;}
+.brand-sub{font:600 10px var(--sans);letter-spacing:2.5px;text-transform:uppercase;color:var(--brass-dk);margin-top:6px;}
+.icoset{display:flex;gap:8px;}
+.ico{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--paper);display:flex;align-items:center;justify-content:center;color:var(--espresso);position:relative;}
+.ico .dot{position:absolute;top:7px;right:8px;width:7px;height:7px;background:#C0392B;border-radius:50%;}
+.search{margin-top:16px;display:flex;align-items:center;gap:10px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:11px 14px;color:var(--faint);font-size:14px;}
+
+.body{flex:1;overflow-y:auto;padding:18px 22px 30px;}
+.body::-webkit-scrollbar{display:none;}
+.note{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-left:3px solid var(--brass);background:rgba(169,135,78,.06);padding:11px 13px;border-radius:6px;margin-bottom:22px;}
+.note .it{font-size:14px;}
+.note .tx{font-size:12.5px;color:var(--espresso);line-height:1.5;}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:4px 0 14px;}
+.sec-t{font:600 20px var(--serif);}
+.sec-l{font:600 11px var(--sans);letter-spacing:1.5px;text-transform:uppercase;color:var(--brass-dk);}
+.rule{height:1px;background:var(--line);margin:18px 0;}
+
+/* listing — editorial row */
+.item{display:flex;gap:14px;padding:4px 0 16px;border-bottom:1px solid var(--line);margin-bottom:16px;}
+.item:last-child{border-bottom:none;}
+.thumb{width:84px;height:84px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:34px;
+  background:linear-gradient(150deg,#3D2B1F,#6b4a30);color:#f3e6d2;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);}
+.item-main{flex:1;min-width:0;}
+.item-cat{font:600 9.5px var(--sans);letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin-bottom:4px;}
+.item-t{font:500 16px var(--serif);line-height:1.2;margin-bottom:5px;}
+.item-d{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:9px;}
+.item-foot{display:flex;align-items:center;justify-content:space-between;}
+.price{font:600 17px var(--serif);color:var(--ink);}
+.tag{font:600 9px var(--sans);letter-spacing:1.2px;text-transform:uppercase;padding:4px 9px;border-radius:3px;}
+.tag-sell{background:rgba(61,43,31,.08);color:var(--espresso);}
+.tag-want{background:rgba(169,135,78,.16);color:var(--brass-dk);}
+.req{border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--paper);margin-bottom:12px;}
+.req-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.req-t{font:500 15px var(--serif);}
+.req-d{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5;}
+.req-foot{display:flex;justify-content:space-between;align-items:center;}
+.req-b{font:600 14px var(--serif);color:var(--brass-dk);}
+
+/* buttons */
+.btn{display:block;width:100%;text-align:center;padding:14px;border-radius:8px;border:none;cursor:pointer;font:600 13px var(--sans);letter-spacing:.5px;}
+.btn-p{background:var(--ink);color:var(--ivory);}
+.btn-o{background:transparent;color:var(--ink);border:1px solid var(--ink);}
+.btn-brass{background:var(--brass);color:#fff;}
+.btn-sm{padding:9px 16px;width:auto;border-radius:6px;font-size:11px;}
+
+/* form */
+.lbl{font:600 10px var(--sans);letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;}
+.fld{margin-bottom:18px;}
+.inp{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font:400 14px var(--sans);color:var(--ink);}
+.inp::placeholder{color:var(--faint);}
+.photo{height:150px;border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--faint);background:var(--paper);margin-bottom:20px;}
+.photo .pi{font:600 26px var(--serif);color:var(--brass);}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{padding:8px 14px;border:1px solid var(--line);border-radius:20px;font:500 12px var(--sans);color:var(--espresso);background:var(--paper);}
+.chip.on{background:var(--ink);color:var(--ivory);border-color:var(--ink);}
+.row2{display:flex;gap:10px;}.row2>*{flex:1;}
+
+/* chat */
+.chat-hdr{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--ink);color:var(--ivory);}
+.chat-hdr .bk{font-size:20px;opacity:.8;}
+.cav{width:40px;height:40px;border-radius:50%;background:var(--brass);display:flex;align-items:center;justify-content:center;font:600 15px var(--serif);color:#fff;}
+.chat-hdr h3{font:500 16px var(--serif);}
+.chat-hdr p{font-size:11px;opacity:.6;}
+.ibn{display:flex;align-items:center;gap:12px;margin:14px 18px 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);}
+.ibn .ic{width:42px;height:42px;border-radius:8px;background:linear-gradient(150deg,#3D2B1F,#6b4a30);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.ibn h4{font:500 14px var(--serif);}
+.ibn p{font-size:11px;color:var(--muted);}
+.ibn .pp{margin-left:auto;background:var(--ink);color:var(--ivory);padding:6px 13px;border-radius:7px;font:600 14px var(--serif);}
+.msgs{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:8px;}
+.msgs::-webkit-scrollbar{display:none;}
+.m{max-width:76%;padding:10px 14px;font-size:13.5px;line-height:1.45;border-radius:14px;}
+.m.them{background:var(--paper);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px;}
+.m.me{background:var(--ink);color:var(--ivory);align-self:flex-end;border-bottom-right-radius:4px;}
+.sys{align-self:center;font:600 11px var(--sans);letter-spacing:.5px;color:var(--brass-dk);background:rgba(169,135,78,.12);padding:6px 14px;border-radius:20px;}
+.chat-foot{border-top:1px solid var(--line);padding:12px 16px;background:var(--ivory);}
+.lockrow{display:flex;gap:8px;margin-bottom:10px;}
+.inbar{display:flex;gap:10px;align-items:center;}
+.inbar .ti{flex:1;padding:11px 15px;border:1px solid var(--line);border-radius:22px;background:var(--paper);font-size:13px;color:var(--faint);}
+.snd{width:40px;height:40px;border-radius:50%;background:var(--ink);color:var(--ivory);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* profile */
+.phdr{background:var(--ink);color:var(--ivory);padding:26px 22px 30px;text-align:center;}
+.pav{width:80px;height:80px;border-radius:50%;border:2px solid var(--brass);background:var(--brass);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font:500 30px var(--serif);color:#fff;}
+.pname{font:500 24px var(--serif);}
+.puni{font:600 10px var(--sans);letter-spacing:2px;text-transform:uppercase;color:var(--brass);margin-top:6px;}
+.prat{margin-top:10px;font-size:12px;color:rgba(246,242,234,.7);}
+.prat .st{color:var(--brass);letter-spacing:2px;}
+.stats{display:flex;margin:-18px 22px 0;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 12px 30px rgba(60,40,20,.12);}
+.stat{flex:1;padding:16px 6px;text-align:center;border-right:1px solid var(--line);}
+.stat:last-child{border:none;}
+.stat .v{font:600 22px var(--serif);}
+.stat .l{font:600 9px var(--sans);letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);margin-top:3px;}
+.mrow{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line);}
+.mrow:last-child{border:none;}
+.mrow .lft{display:flex;align-items:center;gap:12px;}
+.mrow .mi{width:34px;height:34px;border-radius:8px;background:rgba(61,43,31,.07);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.mrow .ml{font-size:14px;}
+.vbadge{font:600 9px var(--sans);letter-spacing:1px;text-transform:uppercase;color:#2f7d4f;background:rgba(47,125,79,.1);padding:4px 8px;border-radius:4px;}
+
+/* nav */
+.nav{display:flex;border-top:1px solid var(--line);background:var(--ivory);padding:8px 0 14px;}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--faint);font:600 9px var(--sans);letter-spacing:.8px;text-transform:uppercase;}
+.nav button.on{color:var(--ink);}
+.nav .nic{font-size:18px;}
+.nav button.on .nic{color:var(--brass-dk);}
+</style>
+</head>
+<body>
+<div class="page-head">
+  <div class="page-kicker">Design 01</div>
+  <h1 class="page-title">Heritage Editorial</h1>
+  <p class="page-sub">An elevated take on Bazaar's brown-and-brass roots — serif headlines, hairline rules, and generous whitespace give it a boutique auction-house refinement.</p>
+</div>
+
+<div class="gallery">
+
+  <!-- BROWSE -->
+  <div class="frame">
+    <div class="frame-label">Browse</div>
+    <div class="phone"><div class="scr">
+      <div class="status"><span>9:41</span><span class="dots">BAZAAR · ⌃ ⌁ ▮</span></div>
+      <div class="hdr">
+        <div class="hdr-top">
+          <div><div class="brand">Bazaar</div><div class="brand-sub">Brown Marketplace</div></div>
+          <div class="icoset"><div class="ico">⚲</div><div class="ico">🔔<span class="dot"></span></div></div>
+        </div>
+        <div class="search">⌕&nbsp; Search listings…</div>
+      </div>
+      <div class="body">
+        <div class="note"><span class="it">✦</span><span class="tx">Listings stay <b>anonymous</b> — identities are revealed only once you both agree to meet.</span></div>
+        <div class="sec"><div class="sec-t">Available Now</div><div class="sec-l">+ Request</div></div>
+
+        <div class="item"><div class="thumb">🧮</div><div class="item-main">
+          <div class="item-cat">Electronics · Like New</div>
+          <div class="item-t">TI-84 Plus Calculator</div>
+          <div class="item-d">Barely used, perfect for calc & stats. Comes with case and fresh batteries.</div>
+          <div class="item-foot"><span class="price">$40–45</span><span class="tag tag-sell">For Sale</span></div>
+        </div></div>
+
+        <div class="item"><div class="thumb">📚</div><div class="item-main">
+          <div class="item-cat">Books · Good</div>
+          <div class="item-t">Organic Chemistry, 8th ed.</div>
+          <div class="item-d">Clean pages, no highlighting. Saved me last semester — now it's yours.</div>
+          <div class="item-foot"><span class="price">$60</span><span class="tag tag-sell">For Sale</span></div>
+        </div></div>
+
+        <div class="item"><div class="thumb">🎧</div><div class="item-main">
+          <div class="item-cat">Electronics · Like New</div>
+          <div class="item-t">Sony WH-1000XM4</div>
+          <div class="item-d">Excellent condition with travel case. Noise cancelling is flawless.</div>
+          <div class="item-foot"><span class="price">$120–140</span><span class="tag tag-sell">For Sale</span></div>
+        </div></div>
+
+        <div class="rule"></div>
+        <div class="sec"><div class="sec-t">Open Requests</div><div class="sec-l">👤 Anonymous</div></div>
+        <div class="req"><div class="req-top"><span class="req-t">Used bike, any condition</span><span class="tag tag-want">Want</span></div>
+          <div class="req-d">Need a commuter for the semester. Will pick up anywhere on campus.</div>
+          <div class="req-foot"><span class="req-b">Budget $80–120</span><button class="btn btn-brass btn-sm">I Have This</button></div></div>
+      </div>
+      <nav class="nav">
+        <button class="on"><span class="nic">⊞</span>Browse</button>
+        <button><span class="nic">＋</span>Sell</button>
+        <button><span class="nic">✉</span>Chats</button>
+        <button><span class="nic">◔</span>Profile</button>
+      </nav>
+    </div></div>
+  </div>
+
+  <!-- POST -->
+  <div class="frame">
+    <div class="frame-label">List an Item</div>
+    <div class="phone"><div class="scr">
+      <div class="status"><span>9:41</span><span class="dots">BAZAAR · ⌃ ⌁ ▮</span></div>
+      <div class="hdr"><div class="hdr-top"><div><div class="brand">Sell</div><div class="brand-sub">List something today</div></div></div></div>
+      <div class="body">
+        <div class="photo"><span class="pi">＋</span><span style="font-size:13px;">Add Photos</span><span style="font-size:11px;">Take or choose from library</span></div>
+        <div class="fld"><label class="lbl">Item Name</label><input class="inp" value="TI-84 Plus Calculator"/></div>
+        <div class="fld"><label class="lbl">Description</label><input class="inp" value="Like new, barely used. Comes with case."/></div>
+        <div class="fld"><label class="lbl">Category</label><div class="chips">
+          <span class="chip">📚 Books</span><span class="chip on">💻 Electronics</span><span class="chip">👕 Clothing</span><span class="chip">🪑 Furniture</span><span class="chip">✦ Other</span>
+        </div></div>
+        <div class="fld"><label class="lbl">Condition</label><div class="chips">
+          <span class="chip">New</span><span class="chip on">Like New</span><span class="chip">Good</span><span class="chip">Fair</span>
+        </div></div>
+        <div class="fld"><label class="lbl">Your Price Range</label><div class="row2">
+          <input class="inp" value="$40"/><input class="inp" value="$45"/>
+        </div></div>
+        <button class="btn btn-p">Post Listing</button>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="frame">
+    <div class="frame-label">Negotiate</div>
+    <div class="phone"><div class="scr">
+      <div class="status" style="color:var(--ivory);background:var(--ink);"><span>9:41</span><span class="dots" style="color:rgba(246,242,234,.5);">⌃ ⌁ ▮</span></div>
+      <div class="chat-hdr">
+        <span class="bk">‹</span><div class="cav">A</div>
+        <div><h3>Anon Buyer #1</h3><p>Negotiating · TI-84 Calculator</p></div>
+      </div>
+      <div class="ibn"><div class="ic">🧮</div><div><h4>TI-84 Plus Calculator</h4><p>Like New · Electronics</p></div><div class="pp">$45</div></div>
+      <div class="msgs">
+        <div class="m them">Hi! Is the TI-84 still available?</div>
+        <div class="m me">It is — barely used, comes with the case.</div>
+        <div class="m them">Would you take $40?</div>
+        <div class="sys">✦ Buyer proposed $40</div>
+        <div class="m me">Let's meet in the middle at $42?</div>
+        <div class="m them">Deal. Where on campus?</div>
+      </div>
+      <div class="chat-foot">
+        <div class="lockrow"><button class="btn btn-o btn-sm" style="flex:1;">＄ Propose price</button><button class="btn btn-brass btn-sm" style="flex:1;">🔒 Accept & lock</button></div>
+        <div class="inbar"><div class="ti">Message…</div><div class="snd">➤</div></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="frame">
+    <div class="frame-label">Profile</div>
+    <div class="phone"><div class="scr">
+      <div class="status" style="color:var(--ivory);background:var(--ink);"><span>9:41</span><span class="dots" style="color:rgba(246,242,234,.5);">⌃ ⌁ ▮</span></div>
+      <div class="phdr">
+        <div class="pav">WS</div><div class="pname">William Smitas</div>
+        <div class="puni">🐻 Brown University</div>
+        <div class="prat"><span class="st">★★★★★</span> 4.8 · 23 reviews</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="v">5</div><div class="l">Listed</div></div>
+        <div class="stat"><div class="v">12</div><div class="l">Sold</div></div>
+        <div class="stat"><div class="v">$480</div><div class="l">Earned</div></div>
+      </div>
+      <div class="body" style="padding-top:20px;">
+        <div class="sec"><div class="sec-t">My Listings</div><div class="sec-l">+ New</div></div>
+        <div class="item"><div class="thumb" style="width:64px;height:64px;font-size:26px;">🎧</div><div class="item-main">
+          <div class="item-t" style="font-size:15px;">Sony WH-1000XM4</div>
+          <div class="item-foot" style="margin-top:6px;"><span class="price" style="font-size:15px;">$120</span><span class="tag tag-sell">Active</span></div></div></div>
+        <div class="rule"></div>
+        <div class="mrow"><div class="lft"><div class="mi">🔔</div><div class="ml">Notifications</div></div><span style="color:var(--faint);">›</span></div>
+        <div class="mrow"><div class="lft"><div class="mi">💳</div><div class="ml">Payment Methods</div></div><span style="color:var(--faint);">›</span></div>
+        <div class="mrow"><div class="lft"><div class="mi">🏫</div><div class="ml">University Email</div></div><span class="vbadge">Verified</span></div>
+        <div class="mrow"><div class="lft"><div class="mi" style="background:rgba(192,57,43,.1);">⏻</div><div class="ml" style="color:#C0392B;">Sign Out</div></div></div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+</body>
+</html>

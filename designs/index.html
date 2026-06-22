@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Bazaar — Design Explorations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',system-ui,sans-serif;background:#0E0F14;color:#EDEEF2;min-height:100vh;padding:64px 24px 80px;}
+.head{max-width:920px;margin:0 auto 48px;text-align:center;}
+.kick{font:700 12px 'Inter';letter-spacing:3px;text-transform:uppercase;color:#7C6CFF;}
+h1{font:900 48px 'Inter';letter-spacing:-2px;margin:10px 0 14px;}
+.sub{font-size:16px;color:#9AA0B5;line-height:1.6;max-width:600px;margin:0 auto;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:1100px;margin:0 auto;}
+.tile{display:block;text-decoration:none;color:inherit;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.1);
+  background:#161821;transition:transform .15s,border-color .15s;}
+.tile:hover{transform:translateY(-4px);border-color:rgba(124,108,255,.5);}
+.swatch{height:120px;display:flex;align-items:flex-end;padding:16px;position:relative;}
+.s1{background:linear-gradient(135deg,#3D2B1F,#A9874E);}
+.s2{background:linear-gradient(135deg,#FFFFFF,#4338CA);}
+.s3{background:linear-gradient(135deg,#7C6CFF,#5BE2D0);}
+.s4{background:linear-gradient(135deg,#FF5A5F,#FFC93C);}
+.s5{background:linear-gradient(135deg,#2F4BFF,#D6F25B);}
+.num{font:900 40px 'Inter';color:rgba(255,255,255,.85);letter-spacing:-2px;}
+.tb{padding:16px 18px 20px;}
+.tt{font:800 19px 'Inter';letter-spacing:-.5px;margin-bottom:6px;}
+.td{font-size:13px;color:#9AA0B5;line-height:1.5;}
+.tag{display:inline-block;margin-top:12px;font:600 11px 'Inter';letter-spacing:.5px;text-transform:uppercase;color:#7C6CFF;}
+.foot{text-align:center;margin-top:48px;font-size:13px;color:#646A82;}
+</style>
+</head>
+<body>
+<div class="head">
+  <div class="kick">Bazaar · UI Explorations</div>
+  <h1>Five Directions</h1>
+  <p class="sub">Five distinct visual systems for the Bazaar marketplace — same screens, same features, five very different personalities. Open any one to see Browse, List, Negotiate and Profile side by side.</p>
+</div>
+<div class="grid">
+  <a class="tile" href="1-heritage-editorial.html"><div class="swatch s1"><span class="num">01</span></div>
+    <div class="tb"><div class="tt">Heritage Editorial</div><div class="td">Serif headlines, hairline rules, brass accents. A boutique auction-house refinement of Bazaar's roots.</div><span class="tag">Elegant · Warm</span></div></a>
+  <a class="tile" href="2-clean-slate.html"><div class="swatch s2"><span class="num" style="color:#4338CA;">02</span></div>
+    <div class="tb"><div class="tt">Clean Slate</div><div class="td">Swiss-minimal white with one indigo accent, a two-column grid and segmented controls. Linear/Stripe-grade.</div><span class="tag">Minimal · Crisp</span></div></a>
+  <a class="tile" href="3-midnight.html"><div class="swatch s3"><span class="num">03</span></div>
+    <div class="tb"><div class="tt">Midnight</div><div class="td">Dark, premium glassmorphism over a violet-to-teal aurora with gradient pricing and a floating pill nav.</div><span class="tag">Dark · Premium</span></div></a>
+  <a class="tile" href="4-campus-pop.html"><div class="swatch s4"><span class="num">04</span></div>
+    <div class="tb"><div class="tt">Campus Pop</div><div class="td">Friendly and energetic — chunky rounded cards, candy gradients, a coral hero. Gen-Z campus energy.</div><span class="tag">Playful · Bold</span></div></a>
+  <a class="tile" href="5-blueprint.html"><div class="swatch s5"><span class="num">05</span></div>
+    <div class="tb"><div class="tt">Blueprint</div><div class="td">Neo-brutalist — hard outlines, offset shadows, monospace data, electric blue & lime. Structural and distinct.</div><span class="tag">Brutalist · Confident</span></div></a>
+</div>
+<div class="foot">Static mockups · realistic sample data · no backend wiring. Pick a direction and I'll build it into the live app.</div>
+</body>
+</html>
