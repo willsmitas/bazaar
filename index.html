@@ -11,6 +11,8 @@
   /* Brand palette — overridden per-school by applyBranding() */
   --bg:#4E3629;--bg-dk:#2C1A0E;--bg-md:#7B5234;
   --gold:#9E7E38;--gold-lt:#C4A55A;
+  /* Darker gold for gold-colored TEXT on light backgrounds (WCAG contrast). */
+  --gold-txt:#6F571F;
   /* Editorial neutrals (static) */
   --cream:#F6F2EA;--surface:#FFFFFF;
   --border:#E7DECF;--txt1:#1C140C;--txt2:#7A6E5E;--txt3:#A89C88;
@@ -49,7 +51,7 @@ html,body{height:100%;background:#EDE6D8;display:flex;align-items:center;justify
 .hdr{background:var(--cream);padding:16px 20px 18px;color:var(--txt1);flex-shrink:0;border-bottom:1px solid var(--border);}
 .hdr-row{display:flex;align-items:center;justify-content:space-between;}
 .logo{font:600 28px var(--serif);letter-spacing:-.5px;line-height:1;color:var(--txt1);}
-.sub{font:600 11px var(--font);letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-top:6px;}
+.sub{font:600 11px var(--font);letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-txt);margin-top:6px;}
 .hdr-acts{display:flex;gap:8px;}
 .ibtn{
   width:36px;height:36px;border-radius:50%;background:var(--surface);
@@ -76,6 +78,12 @@ html,body{height:100%;background:#EDE6D8;display:flex;align-items:center;justify
 
 /* ── Form ── */
 .flbl{display:block;font-size:10px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:8px;}
+.flbl-row{display:flex;justify-content:space-between;align-items:baseline;}
+.flbl-row .flbl{margin-bottom:8px;}
+.fcount{font:600 10px var(--font);color:var(--txt3);}
+.fcount.over{color:#C0392B;}
+.fhint{font-size:11.5px;font-weight:600;margin-top:7px;display:none;}
+.fhint.ok{display:block;color:#16A34A;}
 .fld{margin-bottom:18px;}
 .inp{
   width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);
@@ -100,6 +108,20 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
   justify-content:center;color:#fff;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;
 }
 .pu:hover .pu-overlay{opacity:1;}
+
+/* ── Photo Gallery (multi-upload) ── */
+.pgal{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.pgal-item{position:relative;aspect-ratio:1;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);cursor:grab;}
+.pgal-item.drag{opacity:.35;}
+.pgal-item img{width:100%;height:100%;object-fit:cover;display:block;}
+.pgal-rm{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(28,20,12,.62);
+  color:#fff;border:none;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;cursor:pointer;}
+.pgal-cover{position:absolute;bottom:0;left:0;right:0;background:rgba(28,20,12,.62);color:#fff;
+  font:600 8px var(--font);text-transform:uppercase;letter-spacing:.6px;text-align:center;padding:2px;}
+.pgal-add{aspect-ratio:1;border:1.5px dashed var(--border);border-radius:var(--radius-sm);background:var(--surface);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--gold-txt);transition:border-color .15s;}
+.pgal-add:hover{border-color:var(--gold);}
+.pgal-add .pa-ico{font-size:20px;}.pgal-add .pa-lbl{font:600 9px var(--font);}
 
 /* ── Chips ── */
 .chips{display:flex;flex-wrap:wrap;gap:7px;}
@@ -126,6 +148,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
   text-align:center;letter-spacing:.3px;
 }
 .btn:active{transform:scale(.98);}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
 .btn-p{background:var(--bg);color:#fff;}
 .btn-p:hover{opacity:.9;}
 .btn-o{background:transparent;color:var(--txt1);border:1px solid var(--txt1);}
@@ -141,12 +164,13 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
   gap:9px;margin-bottom:18px;
 }
 .tip-i{font-size:14px;flex-shrink:0;margin-top:1px;}
-.tip-t{font-size:12.5px;color:var(--bg);line-height:1.5;}
+.tip-t{font-size:13px;color:var(--bg);line-height:1.5;}
 
 /* ── Section Header ── */
 .sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
 .sec-t{font:600 20px var(--serif);color:var(--txt1);}
-.sec-l{font:600 11px var(--font);letter-spacing:1.2px;text-transform:uppercase;color:var(--gold);cursor:pointer;}
+.sec-ct{font:600 13px var(--font);color:var(--txt3);}
+.sec-l{font:600 11px var(--font);letter-spacing:1.2px;text-transform:uppercase;color:var(--gold-txt);cursor:pointer;}
 
 /* ── Listing Card ── */
 .lcard{
@@ -158,16 +182,35 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 .limg{width:92px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(150deg,var(--bg),var(--bg-md));color:#f3e6d2;overflow:hidden;}
 .limg img{width:92px;height:100%;object-fit:cover;display:block;flex-shrink:0;}
 .lbody{padding:13px 15px;flex:1;min-width:0;}
-.ltitle{font:500 16px var(--serif);color:var(--txt1);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ldesc{font-size:12px;color:var(--txt2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;margin-bottom:9px;}
+.lbody-top{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;}
+.ltitle{font:500 16px var(--serif);color:var(--txt1);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ldesc{font-size:13px;color:var(--txt2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;margin-bottom:9px;}
 .lfoot{display:flex;align-items:center;justify-content:space-between;}
-.lprice{font:600 16px var(--serif);color:var(--txt1);}
+.lprice{font:600 16px var(--serif);color:var(--txt1);flex-shrink:0;}
+.lmeta{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--txt3);min-width:0;}
+.lmeta .lrate{color:var(--gold-txt);font-weight:600;white-space:nowrap;}
+.lmeta .ldot{opacity:.45;}
+.lmeta .lwhen{white-space:nowrap;}
+
+/* ── Empty States (shared) ── */
+.empty{text-align:center;padding:38px 24px;}
+.empty-ico{width:54px;height:54px;margin:0 auto 14px;color:var(--gold);opacity:.9;}
+.empty-ico svg{width:100%;height:100%;}
+.empty-t{font:600 18px var(--serif);color:var(--txt1);margin-bottom:6px;}
+.empty-d{font-size:13px;color:var(--txt2);line-height:1.55;max-width:250px;margin:0 auto 16px;}
+.empty .btn{max-width:210px;margin:0 auto;}
 
 /* ── Tags ── */
 .tag{font-size:9px;font-weight:600;padding:4px 8px;border-radius:3px;letter-spacing:1px;text-transform:uppercase;}
 .t-sell{background:rgba(61,43,31,.08);color:var(--bg);}
-.t-want{background:rgba(158,126,56,.15);color:var(--gold);}
+.t-want{background:rgba(158,126,56,.15);color:var(--gold-txt);}
 .t-lock{background:rgba(34,197,94,.12);color:#16A34A;}
+
+/* ── Filter / Sort Panel ── */
+.fpanel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;}
+.fpanel-lbl{font-size:10px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:1.3px;margin-bottom:9px;}
+.fpanel-lbl + .chips{margin-bottom:4px;}
+.fpanel .chips + .fpanel-lbl{margin-top:14px;}
 
 /* ── Tab Bar ── */
 .tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:14px;}
@@ -182,9 +225,9 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 .rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:10px;box-shadow:none;}
 .rcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .rcard-title{font:500 16px var(--serif);color:var(--txt1);}
-.rcard-desc{font-size:12.5px;color:var(--txt2);margin-bottom:10px;line-height:1.5;}
+.rcard-desc{font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.5;}
 .rcard-foot{display:flex;justify-content:space-between;align-items:center;}
-.rcard-budget{font:600 15px var(--serif);color:var(--gold);}
+.rcard-budget{font:600 15px var(--serif);color:var(--gold-txt);}
 
 /* ── Chat List ── */
 .cli{
@@ -193,6 +236,9 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
   cursor:pointer;transition:background .12s;
 }
 .cli:hover{background:var(--cream);}
+.cli.unread{background:rgba(158,126,56,.06);}
+.cli.unread .cn{font-weight:700;}
+.cli.unread .cp{color:var(--txt1);font-weight:500;}
 .av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:600 18px var(--serif);color:#fff;flex-shrink:0;}
 .av-a{background:var(--bg);}
 .av-b{background:var(--gold);}
@@ -228,6 +274,23 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 .ibanner-price{margin-left:auto;background:var(--bg);color:#fff;padding:6px 13px;border-radius:8px;font:600 15px var(--serif);}
 .ibanner-price.locked{background:#16A34A;}
 
+/* ── Transaction Timeline (chat) ── */
+.tline{display:flex;align-items:flex-start;padding:12px 18px 6px;flex-shrink:0;}
+.tstep{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;}
+.tstep::before{content:"";position:absolute;top:11px;right:50%;width:100%;height:2px;background:var(--border);z-index:0;}
+.tstep:first-child::before{display:none;}
+.tdot{width:22px;height:22px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--txt3);z-index:1;transition:all .25s;}
+.tlbl{font:600 9px var(--font);letter-spacing:.3px;text-transform:uppercase;color:var(--txt3);text-align:center;line-height:1.2;}
+.tstep.done .tdot{background:var(--gold);border-color:var(--gold);color:#fff;}
+.tstep.done::before{background:var(--gold);}
+.tstep.cur .tdot{background:var(--bg);border-color:var(--bg);color:#fff;transform:scale(1.12);}
+.tstep.cur::before{background:var(--gold);}
+.tstep.cur .tlbl{color:var(--txt1);}
+.tline-alt{flex:1;text-align:center;font:600 12px var(--font);padding:6px;border-radius:8px;}
+.tline-alt.cancelled{background:rgba(192,57,43,.1);color:#A02D22;}
+.tline-alt.disputed{background:rgba(158,126,56,.15);color:var(--gold);}
+
 .msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:6px;scrollbar-width:none;}
 .msgs::-webkit-scrollbar{display:none;}
 
@@ -235,7 +298,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 .msg.them{background:var(--surface);color:var(--txt1);border:1px solid var(--border);border-bottom-left-radius:5px;align-self:flex-start;}
 .msg.me{background:var(--bg);color:#fff;border-bottom-right-radius:5px;align-self:flex-end;}
 .mtime{font-size:10px;color:var(--txt3);text-align:center;margin:6px 0 2px;}
-.sysmsg{background:rgba(158,126,56,.12);border-radius:20px;padding:7px 14px;font:600 12px var(--font);color:var(--gold);text-align:center;align-self:center;}
+.sysmsg{background:rgba(158,126,56,.12);border-radius:20px;padding:7px 14px;font:600 12px var(--font);color:var(--gold-txt);text-align:center;align-self:center;}
 
 .cinbar{
   display:flex;align-items:flex-end;gap:8px;padding:10px 14px 14px;
@@ -264,6 +327,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 .pname{font:500 24px var(--serif);margin-bottom:5px;}
 .puni{font:600 11px var(--font);letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-lt);display:flex;align-items:center;justify-content:center;gap:5px;}
 .prat{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:9px;font-size:13px;opacity:.85;}
+.pmember{font-size:11px;color:var(--gold-lt);margin-top:6px;letter-spacing:.3px;}
 
 .pstats{
   display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;
@@ -292,7 +356,9 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 }
 .nbtn.on{color:var(--bg);}
 .nbtn svg{width:22px;height:22px;}
-.ndot{position:absolute;top:4px;right:calc(50% - 18px);width:7px;height:7px;background:#C0392B;border-radius:50%;border:1.5px solid var(--surface);}
+.nbadge{position:absolute;top:0;right:calc(50% - 24px);min-width:16px;height:16px;padding:0 4px;
+  background:#C0392B;color:#fff;border-radius:8px;font:700 9px var(--font);
+  display:flex;align-items:center;justify-content:center;border:1.5px solid var(--surface);}
 
 /* ── Toast ── */
 .toast{
@@ -310,6 +376,10 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 .mcard-ico{font-size:52px;margin-bottom:12px;}
 .mcard-t{font:600 22px var(--serif);color:var(--txt1);margin-bottom:8px;}
 .mcard-d{font-size:14px;color:var(--txt2);margin-bottom:20px;line-height:1.55;}
+.ob-row{display:flex;gap:12px;align-items:flex-start;margin-top:16px;}
+.ob-ico{font-size:22px;flex-shrink:0;line-height:1.3;}
+.ob-row b{display:block;font:600 14px var(--font);color:var(--txt1);}
+.ob-row p{font-size:13px;color:var(--txt2);line-height:1.5;margin-top:2px;}
 
 /* ── Misc ── */
 .row2{display:flex;gap:10px;}
@@ -377,7 +447,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           <div class="auth-title">Create your account</div>
           <div class="auth-sub">Use your university email so we can verify you're a student.</div>
           <div class="fld"><label class="flbl">Full Name</label><input class="inp" id="re-name" placeholder="William Smitas"/></div>
-          <div class="fld"><label class="flbl" data-brand-email-label>School Email</label><input class="inp" id="re-email" type="email" placeholder="you@school.edu" data-brand-email-input/></div>
+          <div class="fld"><label class="flbl" data-brand-email-label>School Email</label><input class="inp" id="re-email" type="email" placeholder="you@school.edu" data-brand-email-input/><div class="fhint" id="re-email-hint"></div></div>
           <div class="fld"><label class="flbl">Password</label><input class="inp" id="re-pw" type="password" placeholder="At least 8 characters"/></div>
           <button class="btn btn-p" onclick="doRegister()">Create Account</button>
           <div class="auth-switch">Already have one? <b onclick="showView('login')">Sign in</b></div>
@@ -422,6 +492,30 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
       </div>
     </div>
 
+    <!-- First-login Onboarding Modal -->
+    <div class="modal" id="onboardModal">
+      <div class="mcard" style="text-align:left;">
+        <div style="text-align:center;"><div class="mcard-ico">👋</div><div class="mcard-t">Welcome to Bazaar</div></div>
+        <div class="ob-row"><span class="ob-ico">🔒</span><div><b>You stay anonymous</b><p>Your name is hidden until you and a buyer agree on a price.</p></div></div>
+        <div class="ob-row"><span class="ob-ico">🛍️</span><div><b>List or Browse</b><p>Post something to sell, or browse what other students are offering.</p></div></div>
+        <div class="ob-row"><span class="ob-ico">💬</span><div><b>Chat, lock & meet</b><p>Negotiate in-app, lock the price, then meet up on campus.</p></div></div>
+        <button class="btn btn-p" style="margin-top:20px;" onclick="dismissOnboarding()">Got it — let's go</button>
+      </div>
+    </div>
+
+    <!-- Reusable Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+      <div class="mcard">
+        <div class="mcard-ico" id="cf-ico">💵</div>
+        <div class="mcard-t" id="cf-title">Confirm</div>
+        <div class="mcard-d" id="cf-body"></div>
+        <div class="row2">
+          <button class="btn btn-o" id="cf-cancel">Cancel</button>
+          <button class="btn btn-p" id="cf-ok">Confirm</button>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══════════════════════════════
          CHAT OVERLAY
     ════════════════════════════════ -->
@@ -453,6 +547,8 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         </div>
         <div class="ibanner-price" id="iPrice">$45</div>
       </div>
+
+      <div class="tline" id="txnTimeline" style="display:none;"></div>
 
       <div class="msgs" id="msgs"></div>
 
@@ -526,18 +622,17 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           <span class="tip-t">Listings are <strong>anonymous</strong> — your identity is only revealed when you both agree to meet up.</span>
         </div>
 
-        <!-- Photo -->
-        <div class="pu" id="pu" onclick="tapPhoto()">
-          <div class="pu-ico" id="puIco">📷</div>
-          <div class="pu-lbl" id="puLbl">Add Photos</div>
-          <div class="pu-hint" id="puHint">Tap to take or choose from library</div>
-          <div class="pu-overlay" id="puOv">📷 Change Photo</div>
+        <!-- Photos -->
+        <div class="fld">
+          <div class="flbl-row"><label class="flbl">Photos</label><span class="fcount" id="photoCount">0/4 added</span></div>
+          <div class="pgal" id="pgal"></div>
+          <div class="pu-hint" style="margin-top:6px;color:var(--txt3);font-size:12px;">First photo is the cover — drag to reorder.</div>
         </div>
-        <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="onPhotoPicked(event)"/>
+        <input type="file" id="photoInput" accept="image/*" multiple style="display:none;" onchange="onPhotoPicked(event)"/>
 
         <div class="fld">
-          <label class="flbl">Item Name</label>
-          <input type="text" class="inp" id="iname" placeholder="e.g. TI-84 Calculator" maxlength="255"/>
+          <div class="flbl-row"><label class="flbl">Item Name</label><span class="fcount" id="iname-ct">0/255</span></div>
+          <input type="text" class="inp" id="iname" placeholder="e.g. TI-84 Calculator" maxlength="255" oninput="countChars('iname','iname-ct',255);gateListing();"/>
         </div>
 
         <div class="fld">
@@ -577,7 +672,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           </div>
         </div>
 
-        <button class="btn btn-p" onclick="postListing(this)">Post Listing</button>
+        <button class="btn btn-p" id="postBtn" onclick="postListing(this)" disabled title="Add an item name to continue">Post Listing</button>
         <div style="height:24px;"></div>
       </div>
     </div>
@@ -590,8 +685,9 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         <div class="hdr-row">
           <div><div class="logo">Bazaar</div><div class="sub">Find what you need</div></div>
           <div class="hdr-acts">
-            <button class="ibtn" onclick="showToast('Filter coming soon')">
+            <button class="ibtn" id="filterBtn" onclick="toggleFilters()" title="Filter & sort">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+              <div class="rdot" id="filterDot" style="display:none;"></div>
             </button>
           </div>
         </div>
@@ -607,8 +703,8 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         <div class="rform" id="rform">
           <div style="font:600 19px var(--serif);color:var(--txt1);margin-bottom:14px;">Post a Request</div>
           <div class="fld">
-            <label class="flbl">What are you looking for?</label>
-            <input type="text" class="inp" id="rqTitle" placeholder="e.g. Organic Chemistry textbook" maxlength="255"/>
+            <div class="flbl-row"><label class="flbl">What are you looking for?</label><span class="fcount" id="rqTitle-ct">0/255</span></div>
+            <input type="text" class="inp" id="rqTitle" placeholder="e.g. Organic Chemistry textbook" maxlength="255" oninput="countChars('rqTitle','rqTitle-ct',255);gateRequest();"/>
           </div>
           <div class="fld">
             <label class="flbl">Details</label>
@@ -624,22 +720,53 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           </div>
           <div class="row2">
             <button class="btn btn-o" onclick="toggleRform()">Cancel</button>
-            <button class="btn btn-p" onclick="submitReq(this)">Post Request</button>
+            <button class="btn btn-p" id="reqBtn" onclick="submitReq(this)" disabled title="Describe what you're looking for">Post Request</button>
           </div>
         </div>
 
-        <div class="sec">
-          <div class="sec-t">Available Now</div>
-          <span class="sec-l" onclick="toggleRform()">+ Request Item</span>
+        <!-- Filter & sort panel -->
+        <div class="fpanel" id="fpanel" style="display:none;">
+          <div class="fpanel-lbl">Category</div>
+          <div class="chips" id="fCatChips">
+            <div class="chip sel" data-cat="" onclick="pickFilterCat(this,'')">All</div>
+            <div class="chip" data-cat="Books" onclick="pickFilterCat(this,'Books')">📚 Books</div>
+            <div class="chip" data-cat="Electronics" onclick="pickFilterCat(this,'Electronics')">💻 Electronics</div>
+            <div class="chip" data-cat="Clothing" onclick="pickFilterCat(this,'Clothing')">👕 Clothing</div>
+            <div class="chip" data-cat="Furniture" onclick="pickFilterCat(this,'Furniture')">🪑 Furniture</div>
+            <div class="chip" data-cat="Art &amp; Decor" onclick="pickFilterCat(this,'Art &amp; Decor')">🎨 Art &amp; Decor</div>
+            <div class="chip" data-cat="Services" onclick="pickFilterCat(this,'Services')">🛠 Services</div>
+            <div class="chip" data-cat="Other" onclick="pickFilterCat(this,'Other')">✨ Other</div>
+          </div>
+          <div class="fpanel-lbl">Sort by</div>
+          <div class="chips" id="fSortChips">
+            <div class="chip sel" data-sort="newest" onclick="pickFilterSort(this,'newest')">Newest</div>
+            <div class="chip" data-sort="price_asc" onclick="pickFilterSort(this,'price_asc')">Price ↑</div>
+            <div class="chip" data-sort="price_desc" onclick="pickFilterSort(this,'price_desc')">Price ↓</div>
+          </div>
         </div>
-        <div id="lcont"></div>
 
-        <div class="sec" style="margin-top:8px;">
-          <div class="sec-t">Open Requests</div>
-          <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;background:rgba(78,54,41,.08);color:var(--bg);">👤 Anonymous</span>
+        <div class="tabs">
+          <button class="tab on" id="btab-l" onclick="switchBrowseTab('l')">Available Now</button>
+          <button class="tab" id="btab-r" onclick="switchBrowseTab('r')">Open Requests</button>
         </div>
 
-        <div id="reqcont"></div>
+        <!-- Available Now -->
+        <div id="bView-l">
+          <div class="sec">
+            <div class="sec-t">Available Now <span class="sec-ct" id="ct-l"></span></div>
+            <span class="sec-l" onclick="toggleRform()">+ Request Item</span>
+          </div>
+          <div id="lcont"></div>
+        </div>
+
+        <!-- Open Requests -->
+        <div id="bView-r" style="display:none;">
+          <div class="sec">
+            <div class="sec-t">Open Requests <span class="sec-ct" id="ct-r"></span></div>
+            <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;background:rgba(78,54,41,.08);color:var(--bg);">👤 Anonymous</span>
+          </div>
+          <div id="reqcont"></div>
+        </div>
 
         <div style="height:24px;"></div>
       </div>
@@ -681,11 +808,13 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         <div class="pname" id="pName">—</div>
         <div class="puni" id="pUni">—</div>
         <div class="prat" id="pRat"><span class="stars">☆☆☆☆☆</span> 0.0 &nbsp;·&nbsp; 0 reviews</div>
+        <div class="pmember" id="pMember"></div>
       </div>
 
       <div class="pstats">
         <div class="pstat"><div class="pstat-v" id="stListed">0</div><div class="pstat-l">Listed</div></div>
         <div class="pstat"><div class="pstat-v" id="stSold">0</div><div class="pstat-l">Sold</div></div>
+        <div class="pstat"><div class="pstat-v" id="stRating">—</div><div class="pstat-l">Rating</div></div>
         <div class="pstat"><div class="pstat-v" id="stEarned">$0</div><div class="pstat-l">Earned</div></div>
       </div>
 
@@ -755,11 +884,12 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         Browse
       </button>
       <button class="nbtn" id="nav-transactions" onclick="switchScreen('transactions')" style="position:relative;">
-        <div class="ndot"></div>
+        <span class="nbadge" id="navBadgeChats" style="display:none;"></span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         Chats
       </button>
-      <button class="nbtn" id="nav-profile" onclick="switchScreen('profile')">
+      <button class="nbtn" id="nav-profile" onclick="switchScreen('profile')" style="position:relative;">
+        <span class="nbadge" id="navBadgeProfile" style="display:none;"></span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         Profile
       </button>
@@ -850,6 +980,7 @@ const Api = {
 
   listChats:   ()         => api('/chats'),
   messages:    (id)       => api('/chats/' + id + '/messages'),
+  markRead:    (id)       => api('/chats/' + id + '/read', { method:'POST' }),
   sendMessage: (id, content) => api('/chats/' + id + '/messages', { method:'POST', body:{ content } }),
 
   createTransaction:(listing_id) => api('/transactions', { method:'POST', body:{ listing_id } }),
@@ -874,7 +1005,7 @@ let CHAT_CACHE = {};           // chat_id -> { chat, other, listing, txn }
 let _allListings = [];         // last browse result
 let curChatId = null;
 let curTxnId  = null;
-let photoFile = null;          // selected listing image (File)
+let photoFiles = [];           // selected listing images (File[]) — first is the cover
 let ws = null;                 // active chat WebSocket
 let renderedMsgIds = new Set();// message ids already on screen (dedupe live + REST)
 
@@ -915,8 +1046,9 @@ function applyBranding(school){
   root.setProperty('--bg',      primary);
   root.setProperty('--bg-dk',   _darken(primary, 0.45));
   root.setProperty('--bg-md',   _lighten(primary, 0.20));
-  root.setProperty('--gold',    accent);
-  root.setProperty('--gold-lt', _lighten(accent, 0.25));
+  root.setProperty('--gold',     accent);
+  root.setProperty('--gold-lt',  _lighten(accent, 0.25));
+  root.setProperty('--gold-txt', _darken(accent, 0.34));   // accessible gold for text on light bg
 
   const name   = school ? school.name : null;
   const domain = (school && school.email_domains && school.email_domains[0]) || 'school.edu';
@@ -938,6 +1070,30 @@ function money(l){
   if (l.price_min != null) return f(l.price_min) + '+';
   if (l.price_max != null) return 'Up to ' + f(l.price_max);
   return 'Negotiable';
+}
+/* ── Shared empty-state component (line icons + friendly copy) ── */
+const ICON_TAG    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`;
+const ICON_SEARCH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>`;
+const ICON_CHAT   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`;
+const ICON_CHECK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+const ICON_INBOX  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>`;
+
+function emptyState({ icon, title, body, cta, onClick }){
+  return `<div class="empty">
+    <div class="empty-ico">${icon}</div>
+    <div class="empty-t">${title}</div>
+    <div class="empty-d">${body}</div>
+    ${cta ? `<button class="btn btn-p" onclick="${onClick}">${cta}</button>` : ''}
+  </div>`;
+}
+
+/* Anonymous seller trust badge for a listing card: ★ rating + review count,
+   or a "New seller" marker when they have no ratings yet. */
+function sellerBadge(l){
+  const n = Number(l.seller_rating_count) || 0;
+  if (!n) return `<span class="lrate">✦ New seller</span>`;
+  const avg = (Number(l.seller_rating_avg) || 0).toFixed(1);
+  return `<span class="lrate">★ ${avg}</span><span class="ldot">·</span><span>${n} review${n === 1 ? '' : 's'}</span>`;
 }
 const CAT_ICON = { Books:'📚', Electronics:'💻', Clothing:'👕', Furniture:'🪑', 'Art & Decor':'🎨', Services:'🛠', Other:'✨' };
 function iconFor(l){ return CAT_ICON[l && l.category] || '✨'; }
@@ -1028,7 +1184,18 @@ async function enterApp(){
   }
   hideAuth();
   switchScreen('request');                       // land on Browse
+  maybeShowOnboarding();                          // one-time welcome on first login
   await Promise.all([ loadListings(), loadProfile(), loadChats() ]);
+}
+
+/* One-time onboarding modal, gated by a localStorage flag. */
+function maybeShowOnboarding(){
+  if (localStorage.getItem('bz_onboarded')) return;
+  document.getElementById('onboardModal').classList.add('open');
+}
+function dismissOnboarding(){
+  localStorage.setItem('bz_onboarded', '1');
+  document.getElementById('onboardModal').classList.remove('open');
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1063,41 +1230,157 @@ async function once(btn, busyLabel, fn){
   finally { if (btn){ btn.disabled = false; btn.textContent = orig; } }
 }
 
+/* Promise-based styled confirm dialog — resolves true (OK) or false (Cancel). */
+function uiConfirm({ icon = '❓', title = 'Confirm', body = '', okLabel = 'Confirm', cancelLabel = 'Cancel' } = {}){
+  return new Promise(resolve => {
+    const m = document.getElementById('confirmModal');
+    document.getElementById('cf-ico').textContent   = icon;
+    document.getElementById('cf-title').textContent = title;
+    document.getElementById('cf-body').innerHTML    = body;
+    const ok = document.getElementById('cf-ok'), cancel = document.getElementById('cf-cancel');
+    ok.textContent = okLabel; cancel.textContent = cancelLabel;
+    const done = v => { m.classList.remove('open'); ok.onclick = cancel.onclick = null; resolve(v); };
+    ok.onclick = () => done(true);
+    cancel.onclick = () => done(false);
+    m.classList.add('open');
+  });
+}
+
+/* ════════════════════════════════════════════════════════════
+   FORM HELPERS  (live counters, submit gating, email recognition)
+════════════════════════════════════════════════════════════ */
+function countChars(inputId, ctId, max){
+  const el = document.getElementById(inputId), ct = document.getElementById(ctId);
+  if (!el || !ct) return;
+  const n = el.value.length;
+  ct.textContent = `${n}/${max}`;
+  ct.classList.toggle('over', n >= max);
+}
+function gateListing(){
+  const btn = document.getElementById('postBtn');
+  if (!btn) return;
+  const ok = val('iname').length > 0;
+  btn.disabled = !ok;
+  btn.title = ok ? '' : 'Add an item name to continue';
+}
+function gateRequest(){
+  const btn = document.getElementById('reqBtn');
+  if (!btn) return;
+  const ok = val('rqTitle').length > 0;
+  btn.disabled = !ok;
+  btn.title = ok ? '' : "Describe what you're looking for";
+}
+/* Green confirmation under the register email once its domain maps to a school. */
+function updateEmailHint(){
+  const el = document.getElementById('re-email'), hint = document.getElementById('re-email-hint');
+  if (!el || !hint) return;
+  const school = schoolForEmail(el.value);
+  if (school) { hint.textContent = `✓ ${school.emoji ? school.emoji + ' ' : ''}${school.name} recognized`; hint.className = 'fhint ok'; }
+  else { hint.textContent = ''; hint.className = 'fhint'; }
+}
+
 /* ════════════════════════════════════════════════════════════
    BROWSE  (Available Now + Open Requests)
 ════════════════════════════════════════════════════════════ */
-async function loadListings(q=''){
+async function loadListings(){
   try {
-    _allListings = await Api.browse(q ? { q } : {});
-    renderSells(_allListings.filter(l => l.type === 'sell'));
-    renderReqs(_allListings.filter(l => l.type === 'request'));
+    _allListings = await Api.browse({});
+    applyBrowseSearch(document.getElementById('srch').value);   // honor any active search
+    updateBrowseCounts();
   } catch (e) { showToast(e.message); }
 }
 
+/* Tab labels show the live count of everything available (unaffected by search). */
+function updateBrowseCounts(){
+  const sells = _allListings.filter(l => l.type === 'sell').length;
+  const reqs  = _allListings.filter(l => l.type === 'request').length;
+  document.getElementById('btab-l').textContent = `Available Now (${sells})`;
+  document.getElementById('btab-r').textContent = `Open Requests (${reqs})`;
+  document.getElementById('ct-l').textContent = sells ? `${sells} item${sells === 1 ? '' : 's'}` : '';
+  document.getElementById('ct-r').textContent = reqs  ? `${reqs} open`                        : '';
+}
+
+/* Browse filters: text search + category + sort, applied to the active tab only.
+   Category and sort persist across sessions in localStorage. */
+let _filterCat = localStorage.getItem('bz_filter_cat') || '';
+let _sortBy    = localStorage.getItem('bz_sort') || 'newest';
+
+function _priceKey(l){
+  if (l.price_min != null) return Number(l.price_min);
+  if (l.price_max != null) return Number(l.price_max);
+  return Infinity;   // "Negotiable" sorts last when ascending
+}
+function _sortItems(arr){
+  const a = arr.slice();
+  if (_sortBy === 'price_asc')       a.sort((x,y) => _priceKey(x) - _priceKey(y));
+  else if (_sortBy === 'price_desc') a.sort((x,y) => _priceKey(y) - _priceKey(x));
+  else                               a.sort((x,y) => new Date(y.created_at) - new Date(x.created_at));
+  return a;
+}
+function _visibleItems(type){
+  const q = (document.getElementById('srch').value || '').trim().toLowerCase();
+  let arr = _allListings.filter(l => l.type === type);
+  if (q)          arr = arr.filter(l => (l.title || '').toLowerCase().includes(q) || (l.description || '').toLowerCase().includes(q));
+  if (_filterCat) arr = arr.filter(l => (l.category || '') === _filterCat);
+  return _sortItems(arr);
+}
+function applyBrowseSearch(){
+  if (_browseTab === 'l') renderSells(_visibleItems('sell'));
+  else                    renderReqs (_visibleItems('request'));
+}
+
+function toggleFilters(){
+  const p = document.getElementById('fpanel');
+  p.style.display = (p.style.display === 'none' || !p.style.display) ? 'block' : 'none';
+}
+function pickFilterCat(el, cat){
+  pickChip(el); _filterCat = cat; localStorage.setItem('bz_filter_cat', cat);
+  updateFilterDot(); applyBrowseSearch();
+}
+function pickFilterSort(el, sort){
+  pickChip(el); _sortBy = sort; localStorage.setItem('bz_sort', sort);
+  updateFilterDot(); applyBrowseSearch();
+}
+function updateFilterDot(){
+  const dot = document.getElementById('filterDot');
+  if (dot) dot.style.display = (_filterCat || _sortBy !== 'newest') ? 'block' : 'none';
+}
+/* Reflect persisted category/sort in the chips + indicator on load. */
+function initFilters(){
+  document.querySelectorAll('#fCatChips .chip').forEach(c => c.classList.toggle('sel', (c.dataset.cat || '') === _filterCat));
+  document.querySelectorAll('#fSortChips .chip').forEach(c => c.classList.toggle('sel', c.dataset.sort === _sortBy));
+  updateFilterDot();
+}
+
 let _searchTimer;
-function filterL(q){ clearTimeout(_searchTimer); _searchTimer = setTimeout(() => loadListings(q), 300); }
+function filterL(q){ clearTimeout(_searchTimer); _searchTimer = setTimeout(() => applyBrowseSearch(), 200); }
 
 function renderSells(arr){
   const c = document.getElementById('lcont');
   if (!arr.length) {
-    c.innerHTML = `<div style="text-align:center;padding:32px 20px;">
-      <div style="font-size:44px;margin-bottom:12px;">🔍</div>
-      <div style="font:800 16px var(--font);color:var(--txt1);margin-bottom:6px;">No listings yet</div>
-      <div style="font-size:13px;color:var(--txt2);margin-bottom:14px;">Be the first to post something, or make a request.</div>
-      <button class="btn btn-p" style="max-width:180px;margin:0 auto;" onclick="toggleRform()">Make a Request</button>
-    </div>`;
+    const searching = (document.getElementById('srch').value || '').trim();
+    c.innerHTML = searching
+      ? emptyState({ icon: ICON_SEARCH, title: 'No matches', body: `Nothing for "${esc(searching)}" yet. Try a different search, or post a request for it.`, cta: 'Request This Item', onClick: 'toggleRform()' })
+      : emptyState({ icon: ICON_TAG, title: 'Your campus shelf is empty', body: 'Be the first to list something — or tell sellers what you’re hunting for.', cta: 'Make a Request', onClick: 'toggleRform()' });
     return;
   }
   c.innerHTML = arr.map(l => {
     const mine  = ME && l.seller_id === ME.user_id;
     const thumb = imgUrl(l.thumbnail_url);
     const click = mine ? `showToast('This is your listing')` : `startChat('${l.listing_id}')`;
+    const when  = timeAgo(l.created_at);
     return `<div class="lcard" onclick="${click}">
       <div class="limg">${thumb ? `<img src="${thumb}" alt="" onerror="this.replaceWith(document.createTextNode('${iconFor(l)}'))">` : iconFor(l)}</div>
       <div class="lbody">
-        <div class="ltitle">${esc(l.title)}</div>
+        <div class="lbody-top">
+          <div class="ltitle">${esc(l.title)}</div>
+          <div class="lprice">${money(l)}</div>
+        </div>
         <div class="ldesc">${esc(l.description || '')}</div>
-        <div class="lfoot"><div class="lprice">${money(l)}</div><span class="tag t-sell">${mine ? 'YOURS' : 'FOR SALE'}</span></div>
+        <div class="lfoot">
+          <span class="lmeta">${sellerBadge(l)}${when ? `<span class="ldot">·</span><span class="lwhen">${when}</span>` : ''}</span>
+          <span class="tag t-sell">${mine ? 'YOURS' : 'FOR SALE'}</span>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1105,7 +1388,15 @@ function renderSells(arr){
 
 function renderReqs(arr){
   const c = document.getElementById('reqcont');
-  if (!arr.length) { c.innerHTML = `<div style="font-size:13px;color:var(--txt3);text-align:center;padding:18px;">No open requests yet.</div>`; return; }
+  if (!arr.length) {
+    const searching = (document.getElementById('srch').value || '').trim();
+    c.innerHTML = emptyState({
+      icon: ICON_SEARCH,
+      title: searching ? 'No matching requests' : 'No open requests yet',
+      body: searching ? `Nobody’s asking for "${esc(searching)}" right now.` : 'When students post what they’re looking for, it’ll show up here.',
+    });
+    return;
+  }
   c.innerHTML = arr.map(l => {
     const mine = ME && l.seller_id === ME.user_id;
     const click = mine ? `showToast('This is your request')` : `startChat('${l.listing_id}')`;
@@ -1140,16 +1431,43 @@ async function startChat(listingId){
 ════════════════════════════════════════════════════════════ */
 const CONDITION_MAP = { 'New':'new', 'Like New':'like_new', 'Good':'good', 'Fair':'fair' };
 
+const MAX_PHOTOS = 4;
 function tapPhoto(){ document.getElementById('photoInput').click(); }
 function onPhotoPicked(e){
-  const file = e.target.files[0];
-  if (!file) return;
-  photoFile = file;
-  const pu = document.getElementById('pu');
-  const url = URL.createObjectURL(file);
-  pu.style.cssText = 'border:none;overflow:hidden;';
-  pu.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:calc(var(--radius)-2px);">
-    <div class="pu-overlay" style="border-radius:calc(var(--radius)-2px);">📷 Change Photo</div>`;
+  for (const f of Array.from(e.target.files || [])) {
+    if (photoFiles.length >= MAX_PHOTOS) { showToast(`Up to ${MAX_PHOTOS} photos`); break; }
+    photoFiles.push(f);
+  }
+  e.target.value = '';                 // let the user re-pick the same file later
+  renderGallery();
+}
+function removePhoto(i){ photoFiles.splice(i, 1); renderGallery(); }
+function renderGallery(){
+  const g = document.getElementById('pgal');
+  if (!g) return;
+  document.getElementById('photoCount').textContent = `${photoFiles.length}/${MAX_PHOTOS} added`;
+  let html = photoFiles.map((f, i) => `
+    <div class="pgal-item" draggable="true" data-i="${i}"
+         ondragstart="photoDragStart(event,${i})" ondragover="event.preventDefault()"
+         ondrop="photoDrop(event,${i})" ondragend="photoDragEnd(event)">
+      <img src="${URL.createObjectURL(f)}" alt="">
+      ${i === 0 ? '<div class="pgal-cover">Cover</div>' : ''}
+      <button class="pgal-rm" type="button" onclick="removePhoto(${i})">×</button>
+    </div>`).join('');
+  if (photoFiles.length < MAX_PHOTOS) {
+    html += `<div class="pgal-add" onclick="tapPhoto()"><div class="pa-ico">📷</div><div class="pa-lbl">Add</div></div>`;
+  }
+  g.innerHTML = html;
+}
+let _photoDrag = null;
+function photoDragStart(e, i){ _photoDrag = i; e.currentTarget.classList.add('drag'); }
+function photoDragEnd(e){ e.currentTarget.classList.remove('drag'); _photoDrag = null; }
+function photoDrop(e, i){
+  e.preventDefault();
+  if (_photoDrag === null || _photoDrag === i) return;
+  const [moved] = photoFiles.splice(_photoDrag, 1);
+  photoFiles.splice(i, 0, moved);
+  renderGallery();
 }
 
 async function postListing(btn){
@@ -1172,7 +1490,8 @@ async function postListing(btn){
   await once(btn, 'Posting…', async () => {
     try {
       const listing = await Api.createListing(body);
-      if (photoFile) { try { await Api.uploadListingImage(listing.listing_id, photoFile); } catch {} }
+      // Upload in array order so the first photo becomes the cover/thumbnail.
+      for (const f of photoFiles) { try { await Api.uploadListingImage(listing.listing_id, f); } catch {} }
       document.getElementById('modal').classList.add('open');
       await Promise.all([ loadListings(), loadProfile() ]);
     } catch (e) { showToast(e.message); }
@@ -1185,10 +1504,10 @@ function closeModal(){
   document.getElementById('idesc').value = '';
   document.getElementById('priceMin').value = '';
   document.getElementById('priceMax').value = '';
-  photoFile = null;
-  const pu = document.getElementById('pu');
-  pu.style.cssText = '';
-  pu.innerHTML = `<div class="pu-ico" id="puIco">📷</div><div class="pu-lbl">Add Photos</div><div class="pu-hint">Tap to take or choose from library</div><div class="pu-overlay" id="puOv">📷 Change Photo</div>`;
+  document.getElementById('iname-ct').textContent = '0/255';
+  gateListing();
+  photoFiles = [];
+  renderGallery();
   switchScreen('request');
 }
 
@@ -1218,6 +1537,8 @@ async function submitReq(btn){
       document.getElementById('rqDesc').value  = '';
       document.getElementById('rqMin').value   = '';
       document.getElementById('rqMax').value   = '';
+      document.getElementById('rqTitle-ct').textContent = '0/255';
+      gateRequest();
       toggleRform();
       showToast('Request posted!');
       await loadListings();
@@ -1239,9 +1560,18 @@ async function loadProfile(){
   document.getElementById('pUni').textContent = _sch ? ((_sch.emoji ? _sch.emoji + ' ' : '') + _sch.name) : (ME.university || '');
   const rc = ME.rating_count || 0;
   document.getElementById('pRat').innerHTML = `<span class="stars">${stars(ME.rating_avg)}</span> ${Number(ME.rating_avg).toFixed(1)} &nbsp;·&nbsp; ${rc} review${rc === 1 ? '' : 's'}`;
+  document.getElementById('pMember').textContent = ME.created_at
+    ? '🗓 Member since ' + new Date(ME.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+    : '';
   document.getElementById('pBio').textContent = ME.bio || 'No bio yet — tap Edit to add one.';
   document.getElementById('stSold').textContent = ME.transactions_completed;
+  document.getElementById('stRating').textContent = rc ? Number(ME.rating_avg).toFixed(1) : '—';
+  document.getElementById('stRating').nextElementSibling.textContent = rc ? `Rating · ${rc}` : 'Rating';
   document.getElementById('adminRow').style.display = ME.admin_role ? 'flex' : 'none';
+  // Profile badge: pending moderation reports for admins (nothing for regular users).
+  if (ME.admin_role) {
+    try { setNavBadge('navBadgeProfile', (await Api.getReports('pending')).length); } catch {}
+  } else { setNavBadge('navBadgeProfile', 0); }
 
   // My listings — dedicated endpoint returns every status (active, sold, removed…)
   let mine = [];
@@ -1263,7 +1593,16 @@ async function loadProfile(){
 function renderMyListings(arr){
   const c = document.getElementById('myListings');
   const active = arr.filter(l => l.status !== 'removed' && l.status !== 'sold');
-  if (!active.length) { c.innerHTML = `<div style="font-size:13px;color:var(--txt3);padding:6px 0 4px;">No active listings. Tap + New to post one.</div>`; return; }
+  if (!active.length) {
+    c.innerHTML = emptyState({
+      icon: ICON_TAG,
+      title: 'Nothing listed yet',
+      body: 'Your active listings will live here 👈 Post your first item to get started.',
+      cta: '+ New Listing',
+      onClick: "switchScreen('list')",
+    });
+    return;
+  }
   c.innerHTML = active.map(l => {
     const thumb = imgUrl(l.thumbnail_url);
     return `<div class="lcard">
@@ -1304,26 +1643,38 @@ async function loadChats(){
 
 function renderChatList(){
   const c = document.getElementById('chatList');
-  const entries = Object.values(CHAT_CACHE).sort((a,b) => new Date(b.chat.created_at) - new Date(a.chat.created_at));
+  const actAt = e => e.chat.last_message_at || e.chat.created_at;
+  const entries = Object.values(CHAT_CACHE).sort((a,b) => new Date(actAt(b)) - new Date(actAt(a)));
   document.getElementById('tab-a').textContent = `Active (${entries.length})`;
+  // Nav badge = total unread messages across all conversations.
+  const totalUnread = entries.reduce((n, { chat }) => n + (chat.unread_count || 0), 0);
+  setNavBadge('navBadgeChats', totalUnread);
   if (!entries.length) {
-    c.innerHTML = `<div style="padding:44px 20px;text-align:center;color:var(--txt3);">
-      <div style="font-size:42px;margin-bottom:10px;">💬</div>
-      <div style="font-size:13px;">No chats yet. Tap a listing in Browse to start one.</div></div>`;
+    c.innerHTML = emptyState({
+      icon: ICON_CHAT,
+      title: 'No chats yet',
+      body: 'Find something in Browse and tap it to start talking — you stay anonymous until you agree on a price.',
+      cta: 'Browse Listings',
+      onClick: "switchScreen('request')",
+    });
     return;
   }
   c.innerHTML = entries.map(({ chat, other, listing, txn }) => {
     const locked  = txn && txn.status !== 'negotiating';
     const name    = other ? other.full_name : 'Anonymous';
     const item    = listing ? listing.title : 'Listing';
+    const unread  = chat.unread_count || 0;
     const preview = locked
       ? `🔒 ${cap(txn.status)}${txn.agreed_price ? ' · $' + Number(txn.agreed_price).toFixed(0) : ''}`
       : 'About: ' + item;
-    return `<div class="cli" onclick="openChat('${chat.chat_id}')">
+    return `<div class="cli${unread ? ' unread' : ''}" onclick="openChat('${chat.chat_id}')">
       <div class="av av-b">${initials(name)}</div>
       <div class="cm">
-        <div class="cnr"><span class="cn">${esc(name)}</span><span class="ct">${timeAgo(chat.created_at)}</span></div>
-        <div class="cpr"><span class="cp"${locked ? ' style="color:#16A34A;font-weight:600;"' : ''}>${esc(preview)}</span></div>
+        <div class="cnr"><span class="cn">${esc(name)}</span><span class="ct">${timeAgo(chat.last_message_at || chat.created_at)}</span></div>
+        <div class="cpr">
+          <span class="cp"${locked ? ' style="color:#16A34A;font-weight:600;"' : ''}>${esc(preview)}</span>
+          ${unread ? `<span class="cbadge">${unread > 9 ? '9+' : unread}</span>` : ''}
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1354,11 +1705,15 @@ async function openChat(chatId){
   const area = document.getElementById('msgs');
   area.innerHTML = `<div class="mtime">Loading…</div>`;
   document.getElementById('chatOverlay').classList.add('open');
-  try { renderMessages(await Api.messages(chatId)); }
+  try {
+    renderMessages(await Api.messages(chatId));   // fetching also marks them read server-side
+    if (entry.chat.unread_count) { entry.chat.unread_count = 0; renderChatList(); }
+  }
   catch (e) { area.innerHTML = `<div class="mtime">${esc(e.message)}</div>`; }
   openSocket(chatId);
 
   renderPriceControls(txn);
+  renderTimeline(txn);
 }
 
 function renderMessages(msgs){
@@ -1382,6 +1737,9 @@ function appendIncoming(m){
   bubble.textContent = m.content;
   area.appendChild(bubble);
   area.scrollTop = area.scrollHeight;
+  // The chat is open and on-screen, so a message from the other person is already
+  // "read" — clear it server-side so it doesn't resurface as unread later.
+  if (m.sender_id && m.sender_id !== ME.user_id && curChatId) Api.markRead(curChatId).catch(() => {});
   if (/💵|🔒/.test(m.content)) refreshOpenTxn();   // a price was proposed/locked → resync
 }
 
@@ -1424,6 +1782,29 @@ async function sendMsg(){
   catch (e) { bubble.style.opacity = .5; showToast(e.message); }
 }
 
+/* Visual progress of the deal: Negotiating → Locked → Pay & Meet → Done.
+   cancelled/disputed render as a single status pill instead of the stepper. */
+const TXN_STEPS = [
+  { key:'negotiating',      label:'Negotiating', icon:'🔓' },
+  { key:'price_locked',     label:'Locked',      icon:'🤝' },
+  { key:'pending_delivery', label:'Pay & Meet',  icon:'💰' },
+  { key:'completed',        label:'Done',        icon:'✅' },
+];
+function renderTimeline(txn){
+  const el = document.getElementById('txnTimeline');
+  if (!txn) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+  if (txn.status === 'cancelled' || txn.status === 'disputed') {
+    el.innerHTML = `<div class="tline-alt ${txn.status}">${txn.status === 'cancelled' ? '✕ Cancelled' : '⚠ Disputed'}</div>`;
+    return;
+  }
+  const idx = TXN_STEPS.findIndex(s => s.key === txn.status);
+  el.innerHTML = TXN_STEPS.map((s, i) => {
+    const cls = i < idx ? 'done' : (i === idx ? 'cur' : '');
+    return `<div class="tstep ${cls}"><div class="tdot">${i < idx ? '✓' : s.icon}</div><div class="tlbl">${s.label}</div></div>`;
+  }).join('');
+}
+
 function renderPriceControls(txn){
   const div = document.getElementById('lockDiv');
   const lockBtn = document.getElementById('lockPriceBtn');
@@ -1457,11 +1838,19 @@ async function proposePrice(){
   if (input === null) return;
   const amt = Number(input);
   if (!(amt > 0)) { showToast('Enter a valid dollar amount'); return; }
+  const item = (entry && entry.listing) ? entry.listing.title : 'this item';
+  const ok = await uiConfirm({
+    icon: '💵', title: 'Send this offer?',
+    body: `You're offering <b>$${amt.toFixed(0)}</b> for <b>${esc(item)}</b>.<br>They can accept to lock the price in.`,
+    okLabel: 'Send Offer',
+  });
+  if (!ok) return;
   try {
     const txn = await Api.updateTransaction(curTxnId, { agreed_price: amt });
     if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = txn;
     renderPriceControls(txn);
     updateBannerPrice(txn);
+    renderTimeline(txn);
     sendContent(`💵 Proposed $${amt.toFixed(0)} — tap "Accept & lock" to confirm.`);
     showToast('Price proposed');
   } catch (e) { showToast(e.message); }
@@ -1469,11 +1858,21 @@ async function proposePrice(){
 
 async function acceptPrice(){
   if (!curTxnId) return;
+  const entry = CHAT_CACHE[curChatId];
+  const price = entry && entry.txn && entry.txn.agreed_price != null ? Number(entry.txn.agreed_price).toFixed(0) : null;
+  const item  = (entry && entry.listing) ? entry.listing.title : 'this item';
+  const ok = await uiConfirm({
+    icon: '🔒', title: 'Lock in this price?',
+    body: `You'll agree to buy <b>${esc(item)}</b> for <b>$${price}</b>. Identities are revealed so you can arrange to meet.`,
+    okLabel: 'Accept & Lock',
+  });
+  if (!ok) return;
   try {
     const txn = await Api.updateTransaction(curTxnId, { status: 'price_locked' });
     if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = txn;
     updateBannerPrice(txn);
     renderPriceControls(txn);
+    renderTimeline(txn);
     const item = (CHAT_CACHE[curChatId] && CHAT_CACHE[curChatId].listing) ? CHAT_CACHE[curChatId].listing.title : '';
     document.getElementById('cSub').textContent = '🔒 Price Locked · ' + item;
     const fee = txn.commission_amount;
@@ -1491,6 +1890,7 @@ async function refreshOpenTxn(){
     if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = txn;
     renderPriceControls(txn);
     updateBannerPrice(txn);
+    renderTimeline(txn);
     if (txn.status !== 'negotiating') {
       const item = (CHAT_CACHE[curChatId] && CHAT_CACHE[curChatId].listing) ? CHAT_CACHE[curChatId].listing.title : '';
       document.getElementById('cSub').textContent = '🔒 ' + cap(txn.status) + ' · ' + item;
@@ -1509,15 +1909,27 @@ function switchTab(t){
   if (t === 'd') loadCompleted();
 }
 
+let _browseTab = 'l';
+function switchBrowseTab(t){
+  _browseTab = t;
+  document.getElementById('btab-l').classList.toggle('on', t === 'l');
+  document.getElementById('btab-r').classList.toggle('on', t === 'r');
+  document.getElementById('bView-l').style.display = t === 'l' ? 'block' : 'none';
+  document.getElementById('bView-r').style.display = t === 'r' ? 'block' : 'none';
+  applyBrowseSearch(document.getElementById('srch').value);   // re-filter the now-active tab
+}
+
 async function loadCompleted(){
   const c = document.getElementById('completedList');
   c.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt3);font-size:13px;">Loading…</div>`;
   try {
     const done = (await Api.listTransactions()).filter(t => t.status === 'completed');
     if (!done.length) {
-      c.innerHTML = `<div style="padding:36px 20px;text-align:center;color:var(--txt3);">
-        <div style="font-size:40px;margin-bottom:10px;">🤝</div>
-        <div style="font-size:13px;">Your completed transactions appear here</div></div>`;
+      c.innerHTML = emptyState({
+        icon: ICON_CHECK,
+        title: 'No completed deals yet',
+        body: 'Once you close a sale or a purchase, it’ll be saved here as your track record.',
+      });
       return;
     }
     c.innerHTML = done.map(t => {
@@ -1658,6 +2070,14 @@ function showToast(msg){
   toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
 
+/* Show/hide a bottom-nav count badge. count<=0 hides it; >9 shows "9+". */
+function setNavBadge(id, count){
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (count > 0) { el.textContent = count > 9 ? '9+' : String(count); el.style.display = 'flex'; }
+  else el.style.display = 'none';
+}
+
 /* ════ INIT ════ */
 document.getElementById('cinp').addEventListener('keydown', e => {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
@@ -1672,10 +2092,12 @@ document.getElementById('li-pw').addEventListener('keydown', e => { if (e.key ==
 // Live-theme the sign-in screens as the user types a recognized school email.
 ['li-email','re-email','fp-email'].forEach(id => {
   const el = document.getElementById(id);
-  if (el) el.addEventListener('input', () => applyBranding(schoolForEmail(el.value)));
+  if (el) el.addEventListener('input', () => { applyBranding(schoolForEmail(el.value)); if (id === 're-email') updateEmailHint(); });
 });
 
 (async function boot(){
+  initFilters();                  // restore saved category/sort selections
+  renderGallery();                // render the empty photo gallery (Add tile)
   await loadSchools();
   applyBranding(null);            // neutral sign-in branding until we know the school
   if (Tok.access) await enterApp();

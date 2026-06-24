@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from sqlalchemy import or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from db.models import Listing, ListingStatus, ListingType, User
 from server.dependencies import get_blocked_user_ids, get_current_user, get_verified_user, get_db
@@ -23,7 +23,8 @@ def browse(
     db:       Session               = Depends(get_db),
 ):
     # Scope to the viewer's school — each school is an isolated marketplace.
-    query = db.query(Listing).filter(
+    # Eager-load the seller so rating badges don't trigger a query per card.
+    query = db.query(Listing).options(joinedload(Listing.seller)).filter(
         Listing.school_id == current_user.school_id,
         Listing.status == ListingStatus.active,
     )
