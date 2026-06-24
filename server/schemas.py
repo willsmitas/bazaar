@@ -167,6 +167,9 @@ class ListingResponse(BaseModel):
     view_count:    int
     created_at:    datetime
     expires_at:    Optional[datetime]
+    # Seller trust signals (anonymous) — populated from the seller relationship.
+    seller_rating_avg:   Decimal = Decimal("0.00")
+    seller_rating_count: int     = 0
 
 
 # ── Transaction ───────────────────────────────────────────────────────────────
@@ -207,6 +210,9 @@ class ChatResponse(BaseModel):
     participant_1:  uuid.UUID
     participant_2:  uuid.UUID
     created_at:     datetime
+    # Computed per-viewer in list_chats (transient attributes, not columns).
+    unread_count:    int                = 0
+    last_message_at: Optional[datetime] = None
 
 
 class SendMessageRequest(BaseModel):
