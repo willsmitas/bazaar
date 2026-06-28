@@ -8,7 +8,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 
-from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator
+from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator, model_validator
 
 from db.models import (
     AccountStatus, AdminRole, ItemCondition, ListingStatus,
@@ -136,6 +136,14 @@ class CreateListingRequest(BaseModel):
         if v is not None and mn is not None and v < mn:
             raise ValueError("price_max must be >= price_min")
         return v
+
+    @model_validator(mode="after")
+    def _requests_have_no_price(self):
+        # Requests advertise a need, not a price — drop any price the client sent.
+        if self.type == ListingType.request:
+            self.price_min = None
+            self.price_max = None
+        return self
 
 
 class UpdateListingRequest(BaseModel):

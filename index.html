@@ -819,12 +819,8 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           </div>
 
           <div class="fld">
-            <label class="flbl">Your Price Range</label>
-            <div class="pr-row">
-              <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="priceMin" placeholder="Min" min="0"/></div>
-              <div class="pr-sep">—</div>
-              <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="priceMax" placeholder="Max" min="0"/></div>
-            </div>
+            <label class="flbl">Price</label>
+            <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="price" placeholder="0" min="0"/></div>
           </div>
 
           <div class="fld">
@@ -888,14 +884,6 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           <div class="fld">
             <label class="flbl">Details</label>
             <textarea class="inp" id="rqDesc" placeholder="Edition, condition preference…"></textarea>
-          </div>
-          <div class="fld">
-            <label class="flbl">Your Budget</label>
-            <div class="pr-row">
-              <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="rqMin" placeholder="Min" min="0"/></div>
-              <div class="pr-sep">—</div>
-              <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="rqMax" placeholder="Max" min="0"/></div>
-            </div>
           </div>
           <div class="row2">
             <button class="btn btn-o" onclick="toggleRform()">Cancel</button>
@@ -1245,9 +1233,13 @@ function stars(avg){ const n = Math.round(Number(avg) || 0); return '★★★�
 function imgUrl(u){ return !u ? '' : (u.startsWith('http') ? u : API_BASE + u); }
 function money(l){
   const f = v => '$' + Number(v).toFixed(0);
-  if (l.price_min != null && l.price_max != null) return f(l.price_min) + '–' + f(l.price_max);
-  if (l.price_min != null) return f(l.price_min) + '+';
-  if (l.price_max != null) return 'Up to ' + f(l.price_max);
+  // Listings now carry a single price stored in both bounds; legacy rows may
+  // still have a true min–max range, so keep handling that case.
+  if (l.price_min != null && l.price_max != null) {
+    return Number(l.price_min) === Number(l.price_max) ? f(l.price_min) : f(l.price_min) + '–' + f(l.price_max);
+  }
+  if (l.price_min != null) return f(l.price_min);
+  if (l.price_max != null) return f(l.price_max);
   return 'Negotiable';
 }
 /* ── Shared empty-state component (line icons + friendly copy) ── */
@@ -1591,7 +1583,7 @@ function renderReqs(arr){
       <div class="rcard-desc">${esc(l.description || '')}</div>
       <div class="lmeta" style="margin-bottom:10px;">${cardByline(l)}${when ? `<span class="ldot">·</span><span class="lwhen">${when}</span>` : ''}</div>
       <div class="rcard-foot">
-        <span class="rcard-budget">Budget: ${money(l)}</span>
+        <span style="font-size:13px;color:var(--txt3);">Looking for this</span>
         <span style="font-size:11px;font-weight:600;color:var(--gold-txt);">View ›</span>
       </div>
     </div>`;
@@ -1648,8 +1640,7 @@ function renderDetail(l){
         <span style="margin-left:auto;font-size:12px;color:var(--txt3);">${timeAgo(l.created_at)}</span>
       </div>
       <div class="dtitle">${esc(l.title)}</div>
-      <div class="dprice-lbl">${isReq ? 'Budget' : 'Asking'}</div>
-      <div class="dprice">${money(l)}</div>
+      ${isReq ? '' : `<div class="dprice-lbl">Price</div><div class="dprice">${money(l)}</div>`}
 
       <div class="dseller">
         ${avatar}
@@ -1766,16 +1757,16 @@ async function postListing(btn){
   const catRaw  = chosenChip('catChips');
   const category = catRaw ? catRaw.replace(/^[^\p{L}]+/u, '').trim() : null;   // strip leading emoji
   const condTxt = chosenChip('condChips');
-  const pmin = document.getElementById('priceMin').value;
-  const pmax = document.getElementById('priceMax').value;
+  const priceVal = document.getElementById('price').value;
+  const price = priceVal !== '' ? Number(priceVal) : null;
   const body = {
     type: 'sell',
     title,
     description: document.getElementById('idesc').value.trim() || null,
     category,
     condition: condTxt ? CONDITION_MAP[condTxt] : null,
-    price_min: pmin !== '' ? Number(pmin) : null,
-    price_max: pmax !== '' ? Number(pmax) : null,
+    price_min: price,
+    price_max: price,
   };
   await once(btn, 'Posting…', async () => {
     try {
@@ -1792,8 +1783,7 @@ function closeModal(){
   document.getElementById('modal').classList.remove('open');
   document.getElementById('iname').value = '';
   document.getElementById('idesc').value = '';
-  document.getElementById('priceMin').value = '';
-  document.getElementById('priceMax').value = '';
+  document.getElementById('price').value = '';
   document.getElementById('iname-ct').textContent = '0/255';
   gateListing();
   photoFiles = [];
@@ -1812,21 +1802,17 @@ function toggleRform(){
 async function submitReq(btn){
   const title = val('rqTitle');
   if (!title) { showToast('What are you looking for?'); return; }
-  const pmin = document.getElementById('rqMin').value;
-  const pmax = document.getElementById('rqMax').value;
   await once(btn, 'Posting…', async () => {
     try {
       await Api.createListing({
         type: 'request',
         title,
         description: document.getElementById('rqDesc').value.trim() || null,
-        price_min: pmin !== '' ? Number(pmin) : null,
-        price_max: pmax !== '' ? Number(pmax) : null,
+        price_min: null,
+        price_max: null,
       });
       document.getElementById('rqTitle').value = '';
       document.getElementById('rqDesc').value  = '';
-      document.getElementById('rqMin').value   = '';
-      document.getElementById('rqMax').value   = '';
       document.getElementById('rqTitle-ct').textContent = '0/255';
       gateRequest();
       toggleRform();
