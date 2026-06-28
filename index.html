@@ -109,6 +109,21 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 }
 .pu:hover .pu-overlay{opacity:1;}
 
+/* ── Capture Hero (step 1 of the list flow) ── */
+.capture-hero{
+  border:1.5px dashed var(--border);border-radius:var(--radius);background:var(--surface);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;padding:64px 24px;cursor:pointer;text-align:center;margin-top:24px;
+  transition:border-color .15s,background .15s;
+}
+.capture-hero:hover{border-color:var(--gold);background:rgba(158,126,56,.04);}
+.capture-ico{
+  width:76px;height:76px;border-radius:50%;background:var(--bg);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:6px;
+}
+.capture-title{font:600 20px var(--serif);color:var(--txt1);}
+.capture-sub{font-size:13px;color:var(--txt2);line-height:1.5;}
+
 /* ── Photo Gallery (multi-upload) ── */
 .pgal{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
 .pgal-item{position:relative;aspect-ratio:1;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border);cursor:grab;}
@@ -774,62 +789,69 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
       </div>
 
       <div class="content">
-        <div class="tip">
-          <span class="tip-i">💡</span>
-          <span class="tip-t">Your <strong>name &amp; rating</strong> show on every listing — a good rating helps things sell faster.</span>
-        </div>
-
-        <!-- Photos -->
-        <div class="fld">
-          <div class="flbl-row"><label class="flbl">Photos</label><span class="fcount" id="photoCount">0/4 added</span></div>
-          <div class="pgal" id="pgal"></div>
-          <div class="pu-hint" style="margin-top:6px;color:var(--txt3);font-size:12px;">First photo is the cover — drag to reorder.</div>
-        </div>
         <input type="file" id="photoInput" accept="image/*" multiple style="display:none;" onchange="onPhotoPicked(event)"/>
 
-        <div class="fld">
-          <div class="flbl-row"><label class="flbl">Item Name</label><span class="fcount" id="iname-ct">0/255</span></div>
-          <input type="text" class="inp" id="iname" placeholder="e.g. TI-84 Calculator" maxlength="255" oninput="countChars('iname','iname-ct',255);gateListing();"/>
-        </div>
-
-        <div class="fld">
-          <label class="flbl">Description</label>
-          <textarea class="inp" id="idesc" placeholder="Condition, model, why you're selling…"></textarea>
-        </div>
-
-        <div class="fld">
-          <label class="flbl">Category</label>
-          <div class="chips" id="catChips">
-            <div class="chip" onclick="pickChip(this,'cat')">📚 Books</div>
-            <div class="chip" onclick="pickChip(this,'cat')">💻 Electronics</div>
-            <div class="chip" onclick="pickChip(this,'cat')">👕 Clothing</div>
-            <div class="chip" onclick="pickChip(this,'cat')">🪑 Furniture</div>
-            <div class="chip" onclick="pickChip(this,'cat')">🎨 Art &amp; Decor</div>
-            <div class="chip" onclick="pickChip(this,'cat')">🛠 Services</div>
-            <div class="chip" onclick="pickChip(this,'cat')">✨ Other</div>
+        <!-- STEP 1 — capture a photo to begin -->
+        <div id="listStep1">
+          <div class="capture-hero" onclick="tapPhoto()">
+            <div class="capture-ico">📷</div>
+            <div class="capture-title">Take a photo</div>
+            <div class="capture-sub">Snap your item to start a listing<br>or choose one from your library</div>
           </div>
         </div>
 
-        <div class="fld">
-          <label class="flbl">Condition</label>
-          <div class="chips" id="condChips">
-            <div class="chip" onclick="pickChip(this,'cond')">New</div>
-            <div class="chip sel" onclick="pickChip(this,'cond')">Like New</div>
-            <div class="chip" onclick="pickChip(this,'cond')">Good</div>
-            <div class="chip" onclick="pickChip(this,'cond')">Fair</div>
+        <!-- STEP 2 — fill in the details (revealed after the first photo) -->
+        <div id="listStep2" style="display:none;">
+          <div class="fld">
+            <div class="flbl-row"><label class="flbl">Photos</label><span class="fcount" id="photoCount">0/4 added</span></div>
+            <div class="pgal" id="pgal"></div>
+            <div class="pu-hint" style="margin-top:6px;color:var(--txt3);font-size:12px;">First photo is the cover — drag to reorder.</div>
           </div>
-        </div>
 
-        <div class="fld">
-          <label class="flbl">Your Price Range</label>
-          <div class="pr-row">
-            <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="priceMin" placeholder="Min" min="0"/></div>
-            <div class="pr-sep">—</div>
-            <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="priceMax" placeholder="Max" min="0"/></div>
+          <div class="fld">
+            <div class="flbl-row"><label class="flbl">Item Name</label><span class="fcount" id="iname-ct">0/255</span></div>
+            <input type="text" class="inp" id="iname" placeholder="e.g. TI-84 Calculator" maxlength="255" oninput="countChars('iname','iname-ct',255);gateListing();"/>
           </div>
-        </div>
 
-        <button class="btn btn-p" id="postBtn" onclick="postListing(this)" disabled title="Add an item name to continue">Post Listing</button>
+          <div class="fld">
+            <label class="flbl">Description</label>
+            <textarea class="inp" id="idesc" placeholder="Condition, model, why you're selling…"></textarea>
+          </div>
+
+          <div class="fld">
+            <label class="flbl">Your Price Range</label>
+            <div class="pr-row">
+              <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="priceMin" placeholder="Min" min="0"/></div>
+              <div class="pr-sep">—</div>
+              <div class="pr-wrap"><span class="pr-sym">$</span><input type="number" class="inp" id="priceMax" placeholder="Max" min="0"/></div>
+            </div>
+          </div>
+
+          <div class="fld">
+            <label class="flbl">Category</label>
+            <div class="chips" id="catChips">
+              <div class="chip" onclick="pickChip(this,'cat')">📚 Books</div>
+              <div class="chip" onclick="pickChip(this,'cat')">💻 Electronics</div>
+              <div class="chip" onclick="pickChip(this,'cat')">👕 Clothing</div>
+              <div class="chip" onclick="pickChip(this,'cat')">🪑 Furniture</div>
+              <div class="chip" onclick="pickChip(this,'cat')">🎨 Art &amp; Decor</div>
+              <div class="chip" onclick="pickChip(this,'cat')">🛠 Services</div>
+              <div class="chip" onclick="pickChip(this,'cat')">✨ Other</div>
+            </div>
+          </div>
+
+          <div class="fld">
+            <label class="flbl">Condition</label>
+            <div class="chips" id="condChips">
+              <div class="chip" onclick="pickChip(this,'cond')">New</div>
+              <div class="chip sel" onclick="pickChip(this,'cond')">Like New</div>
+              <div class="chip" onclick="pickChip(this,'cond')">Good</div>
+              <div class="chip" onclick="pickChip(this,'cond')">Fair</div>
+            </div>
+          </div>
+
+          <button class="btn btn-p" id="postBtn" onclick="postListing(this)" disabled title="Add an item name to continue">Post Listing</button>
+        </div>
         <div style="height:24px;"></div>
       </div>
     </div>
@@ -1715,6 +1737,17 @@ function renderGallery(){
     html += `<div class="pgal-add" onclick="tapPhoto()"><div class="pa-ico">📷</div><div class="pa-lbl">Add</div></div>`;
   }
   g.innerHTML = html;
+  updateListSteps();
+}
+
+/* Two-step list flow: show only the capture tile until the first photo is
+   added, then reveal the details form. Reverts to step 1 if all photos go. */
+function updateListSteps(){
+  const has = photoFiles.length > 0;
+  const s1 = document.getElementById('listStep1');
+  const s2 = document.getElementById('listStep2');
+  if (s1) s1.style.display = has ? 'none' : 'block';
+  if (s2) s2.style.display = has ? 'block' : 'none';
 }
 let _photoDrag = null;
 function photoDragStart(e, i){ _photoDrag = i; e.currentTarget.classList.add('drag'); }
