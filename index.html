@@ -189,6 +189,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 .lprice{font:600 16px var(--serif);color:var(--txt1);flex-shrink:0;}
 .lmeta{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--txt3);min-width:0;}
 .lmeta .lrate{color:var(--gold-txt);font-weight:600;white-space:nowrap;}
+.lmeta .lwho{font-weight:600;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
 .lmeta .ldot{opacity:.45;}
 .lmeta .lwhen{white-space:nowrap;}
 
@@ -222,12 +223,38 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 .rform.open{display:block;}
 
 /* ── Open Request Card ── */
-.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:10px;box-shadow:none;}
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px;margin-bottom:10px;box-shadow:none;cursor:pointer;transition:border-color .15s,box-shadow .15s;}
+.rcard:hover{border-color:var(--gold);box-shadow:var(--sh);}
 .rcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .rcard-title{font:500 16px var(--serif);color:var(--txt1);}
 .rcard-desc{font-size:13px;color:var(--txt2);margin-bottom:10px;line-height:1.5;}
 .rcard-foot{display:flex;justify-content:space-between;align-items:center;}
 .rcard-budget{font:600 15px var(--serif);color:var(--gold-txt);}
+
+/* ── Listing / Request Detail ── */
+.dbody{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;}
+.dbody::-webkit-scrollbar{display:none;}
+.dhero{width:100%;height:240px;background:linear-gradient(150deg,var(--bg),var(--bg-md));display:flex;align-items:center;justify-content:center;font-size:88px;color:#f3e6d2;overflow:hidden;flex-shrink:0;}
+.dhero img{width:100%;height:100%;object-fit:cover;}
+.dthumbs{display:flex;gap:8px;padding:12px 20px 0;flex-wrap:wrap;}
+.dthumb{width:52px;height:52px;border-radius:8px;overflow:hidden;border:1px solid var(--border);cursor:pointer;flex-shrink:0;}
+.dthumb.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(158,126,56,.25);}
+.dthumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.dcontent{padding:18px 20px 26px;}
+.dtag-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.dtitle{font:600 24px var(--serif);color:var(--txt1);line-height:1.2;margin-bottom:6px;}
+.dprice{font:600 22px var(--serif);color:var(--txt1);}
+.dprice-lbl{font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;}
+.dseller{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin:18px 0;}
+.dseller .av{width:46px;height:46px;font-size:17px;}
+.dseller-info{flex:1;min-width:0;}
+.dseller-name{font:600 16px var(--serif);color:var(--txt1);}
+.dseller-rating{font-size:12.5px;color:var(--gold-txt);font-weight:600;margin-top:2px;display:flex;align-items:center;gap:5px;}
+.dseller-rating .stars{font-size:13px;}
+.dsec-lbl{font-size:10px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:1.3px;margin:20px 0 8px;}
+.ddesc{font-size:14px;color:var(--txt1);line-height:1.65;white-space:pre-wrap;word-break:break-word;}
+.dfoot{flex-shrink:0;padding:12px 16px 16px;background:var(--surface);border-top:1px solid var(--border);}
+.dnote{font-size:13px;color:var(--txt2);text-align:center;padding:6px 4px;}
 
 /* ── Chat List ── */
 .cli{
@@ -487,7 +514,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
       <div class="mcard">
         <div class="mcard-ico">🎉</div>
         <div class="mcard-t">Listing Posted!</div>
-        <div class="mcard-d">Your item is now live. You'll stay <strong>anonymous</strong> until a buyer opens a chat with you.</div>
+        <div class="mcard-d">Your item is now live. Buyers can see your name and rating, and message you to start a negotiation.</div>
         <button class="btn btn-p" onclick="closeModal()">Done</button>
       </div>
     </div>
@@ -496,7 +523,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
     <div class="modal" id="onboardModal">
       <div class="mcard" style="text-align:left;">
         <div style="text-align:center;"><div class="mcard-ico">👋</div><div class="mcard-t">Welcome to Bazaar</div></div>
-        <div class="ob-row"><span class="ob-ico">🔒</span><div><b>You stay anonymous</b><p>Your name is hidden until you and a buyer agree on a price.</p></div></div>
+        <div class="ob-row"><span class="ob-ico">🎓</span><div><b>Real students, real names</b><p>Every posting shows the poster's name and star rating, so you know who you're dealing with.</p></div></div>
         <div class="ob-row"><span class="ob-ico">🛍️</span><div><b>List or Browse</b><p>Post something to sell, or browse what other students are offering.</p></div></div>
         <div class="ob-row"><span class="ob-ico">💬</span><div><b>Chat, lock & meet</b><p>Negotiate in-app, lock the price, then meet up on campus.</p></div></div>
         <button class="btn btn-p" style="margin-top:20px;" onclick="dismissOnboarding()">Got it — let's go</button>
@@ -526,7 +553,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         </button>
         <div class="chdr-av av-b" id="cAv">M</div>
         <div class="chdr-i">
-          <h3 id="cName">Anon Buyer #1</h3>
+          <h3 id="cName">Member</h3>
           <p id="cSub">Negotiating · TI-84 Calculator</p>
         </div>
         <div style="margin-left:auto;display:flex;gap:4px;">
@@ -566,6 +593,25 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
+    </div>
+
+    <!-- ═══════════════════════════════
+         LISTING / REQUEST DETAIL OVERLAY
+    ════════════════════════════════ -->
+    <div class="cov" id="detailOverlay">
+      <div class="chdr">
+        <button class="cback" onclick="closeDetail()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+        </button>
+        <div class="chdr-i"><h3 id="dHdrTitle">Details</h3></div>
+        <div style="margin-left:auto;">
+          <button class="ibtn" id="dReportBtn" onclick="reportFromDetail()" title="Report this user">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="dbody" id="detailBody"></div>
+      <div class="dfoot" id="detailFoot"></div>
     </div>
 
     <!-- ═══════════════════════════════
@@ -616,7 +662,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
       <div class="content" style="overflow-y:auto;flex:1;">
         <div class="tip">
           <span class="tip-i">🔒</span>
-          <span class="tip-t">You stay <strong>anonymous</strong> on every listing. Your name is only shared with the other person once you both lock in a price.</span>
+          <span class="tip-t">Your <strong>name and rating</strong> appear on everything you post, so buyers know who they're dealing with.</span>
         </div>
 
         <div class="card">
@@ -630,8 +676,8 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         </div>
 
         <div class="card">
-          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">🕶️ Anonymous by default</div>
-          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">Listings never show your name or photo. Identities are revealed to each other only after a price is agreed and locked — never before.</p>
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">🎓 Verified students only</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">Everyone is a verified student from your school. Postings show the poster's name and rating so you always know who you're trading with.</p>
         </div>
 
         <div class="card">
@@ -693,8 +739,8 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         </div>
 
         <div class="card">
-          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">4. Anonymity &amp; identity</div>
-          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">Listings are anonymous until both parties agree on a price. You agree not to attempt to identify or contact other users outside of the agreed exchange.</p>
+          <div style="font:600 15px var(--serif);color:var(--txt1);margin-bottom:6px;">4. Identity &amp; conduct</div>
+          <p style="font-size:13px;color:var(--txt2);line-height:1.6;">Postings display your name and rating to other verified students. You agree to deal honestly and not to harass or contact other users outside of the agreed exchange.</p>
         </div>
 
         <div class="card">
@@ -730,7 +776,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
       <div class="content">
         <div class="tip">
           <span class="tip-i">💡</span>
-          <span class="tip-t">Listings are <strong>anonymous</strong> — your identity is only revealed when you both agree to meet up.</span>
+          <span class="tip-t">Your <strong>name &amp; rating</strong> show on every listing — a good rating helps things sell faster.</span>
         </div>
 
         <!-- Photos -->
@@ -874,7 +920,7 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         <div id="bView-r" style="display:none;">
           <div class="sec">
             <div class="sec-t">Open Requests <span class="sec-ct" id="ct-r"></span></div>
-            <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;background:rgba(78,54,41,.08);color:var(--bg);">👤 Anonymous</span>
+            <span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:8px;background:rgba(78,54,41,.08);color:var(--bg);">🙋 Wanted by students</span>
           </div>
           <div id="reqcont"></div>
         </div>
@@ -1198,7 +1244,7 @@ function emptyState({ icon, title, body, cta, onClick }){
   </div>`;
 }
 
-/* Anonymous trust badge for whoever posted a card: ★ rating + review count,
+/* Trust badge for whoever posted a card: ★ rating + review count,
    or a fallback marker (emptyLabel) when they have no ratings yet. */
 function raterBadge(l, emptyLabel){
   const n = Number(l.seller_rating_count) || 0;
@@ -1207,6 +1253,13 @@ function raterBadge(l, emptyLabel){
   return `<span class="lrate">★ ${avg}</span><span class="ldot">·</span><span>${n} review${n === 1 ? '' : 's'}</span>`;
 }
 function sellerBadge(l){ return raterBadge(l, 'New seller'); }
+/* Compact byline for a browse card: poster name + a short star rating. */
+function cardByline(l){
+  const name = esc(l.seller_name || 'Member');
+  const rc   = Number(l.seller_rating_count) || 0;
+  const rate = rc ? `★ ${(Number(l.seller_rating_avg) || 0).toFixed(1)}` : 'New';
+  return `<span class="lwho">${name}</span><span class="ldot">·</span><span class="lrate">${rate}</span>`;
+}
 const CAT_ICON = { Books:'📚', Electronics:'💻', Clothing:'👕', Furniture:'🪑', 'Art & Decor':'🎨', Services:'🛠', Other:'✨' };
 function iconFor(l){ return CAT_ICON[l && l.category] || '✨'; }
 function timeAgo(iso){
@@ -1479,9 +1532,8 @@ function renderSells(arr){
   c.innerHTML = arr.map(l => {
     const mine  = ME && l.seller_id === ME.user_id;
     const thumb = imgUrl(l.thumbnail_url);
-    const click = mine ? `showToast('This is your listing')` : `startChat('${l.listing_id}')`;
     const when  = timeAgo(l.created_at);
-    return `<div class="lcard" onclick="${click}">
+    return `<div class="lcard" onclick="openDetail('${l.listing_id}')">
       <div class="limg">${thumb ? `<img src="${thumb}" alt="" onerror="this.replaceWith(document.createTextNode('${iconFor(l)}'))">` : iconFor(l)}</div>
       <div class="lbody">
         <div class="lbody-top">
@@ -1490,7 +1542,7 @@ function renderSells(arr){
         </div>
         <div class="ldesc">${esc(l.description || '')}</div>
         <div class="lfoot">
-          <span class="lmeta">${sellerBadge(l)}${when ? `<span class="ldot">·</span><span class="lwhen">${when}</span>` : ''}</span>
+          <span class="lmeta">${cardByline(l)}${when ? `<span class="ldot">·</span><span class="lwhen">${when}</span>` : ''}</span>
           <span class="tag t-sell">${mine ? 'YOURS' : 'FOR SALE'}</span>
         </div>
       </div>
@@ -1511,32 +1563,124 @@ function renderReqs(arr){
   }
   c.innerHTML = arr.map(l => {
     const mine = ME && l.seller_id === ME.user_id;
-    const click = mine ? `showToast('This is your request')` : `startChat('${l.listing_id}')`;
-    return `<div class="rcard">
-      <div class="rcard-top"><span class="rcard-title">${esc(l.title)}</span><span class="tag t-want">WANT</span></div>
+    const when = timeAgo(l.created_at);
+    return `<div class="rcard" onclick="openDetail('${l.listing_id}')">
+      <div class="rcard-top"><span class="rcard-title">${esc(l.title)}</span><span class="tag t-want">${mine ? 'YOURS' : 'WANT'}</span></div>
       <div class="rcard-desc">${esc(l.description || '')}</div>
-      <div class="lmeta" style="margin-bottom:10px;">${raterBadge(l, 'New member')}</div>
+      <div class="lmeta" style="margin-bottom:10px;">${cardByline(l)}${when ? `<span class="ldot">·</span><span class="lwhen">${when}</span>` : ''}</div>
       <div class="rcard-foot">
         <span class="rcard-budget">Budget: ${money(l)}</span>
-        <button class="btn btn-p btn-sm" onclick="${click}">${mine ? 'Yours' : 'I Have This'}</button>
+        <span style="font-size:11px;font-weight:600;color:var(--gold-txt);">View ›</span>
       </div>
     </div>`;
   }).join('');
 }
 
-/* Tap a listing → open (or create) a transaction + chat with the seller */
+/* ════════════════════════════════════════════════════════════
+   LISTING / REQUEST DETAIL  (the focused view for one posting)
+════════════════════════════════════════════════════════════ */
+let _detailListing = null;
+
+async function openDetail(listingId){
+  let l = _allListings.find(x => x.listing_id === listingId);
+  if (!l) { try { l = await Api.getListing(listingId); } catch (e) { showToast(e.message); return; } }
+  _detailListing = l;
+  renderDetail(l);
+  document.getElementById('detailOverlay').classList.add('open');
+}
+function closeDetail(){ document.getElementById('detailOverlay').classList.remove('open'); _detailListing = null; }
+
+function renderDetail(l){
+  const mine  = ME && l.seller_id === ME.user_id;
+  const isReq = l.type === 'request';
+  const imgs  = (l.image_urls && l.image_urls.length) ? l.image_urls : (l.thumbnail_url ? [l.thumbnail_url] : []);
+
+  document.getElementById('dHdrTitle').textContent = isReq ? 'Request' : 'Listing';
+  document.getElementById('dReportBtn').style.display = mine ? 'none' : 'flex';
+
+  const hero = imgs.length
+    ? `<img id="dHero" src="${imgUrl(imgs[0])}" alt="" onerror="this.replaceWith(document.createTextNode('${iconFor(l)}'))">`
+    : iconFor(l);
+  const thumbs = imgs.length > 1
+    ? `<div class="dthumbs">${imgs.map((u, i) =>
+        `<div class="dthumb${i === 0 ? ' on' : ''}" onclick="swapHero('${imgUrl(u)}',this)"><img src="${imgUrl(u)}" alt=""></div>`).join('')}</div>`
+    : '';
+
+  const rc = Number(l.seller_rating_count) || 0;
+  const ratingLine = rc
+    ? `<span class="stars">${stars(l.seller_rating_avg)}</span> ${(Number(l.seller_rating_avg) || 0).toFixed(1)} · ${rc} review${rc === 1 ? '' : 's'}`
+    : `<span class="stars">${stars(0)}</span> No ratings yet`;
+  const name   = l.seller_name || 'Member';
+  const avatar = l.seller_picture_url
+    ? `<div class="av av-b"><img src="${imgUrl(l.seller_picture_url)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" alt=""></div>`
+    : `<div class="av av-b">${initials(name)}</div>`;
+  const meta = [cap(l.condition), l.category].filter(Boolean).join(' · ');
+
+  document.getElementById('detailBody').innerHTML = `
+    <div class="dhero">${hero}</div>
+    ${thumbs}
+    <div class="dcontent">
+      <div class="dtag-row">
+        <span class="tag ${isReq ? 't-want' : 't-sell'}">${isReq ? 'WANTED' : 'FOR SALE'}</span>
+        ${meta ? `<span style="font-size:12px;color:var(--txt3);">${esc(meta)}</span>` : ''}
+        <span style="margin-left:auto;font-size:12px;color:var(--txt3);">${timeAgo(l.created_at)}</span>
+      </div>
+      <div class="dtitle">${esc(l.title)}</div>
+      <div class="dprice-lbl">${isReq ? 'Budget' : 'Asking'}</div>
+      <div class="dprice">${money(l)}</div>
+
+      <div class="dseller">
+        ${avatar}
+        <div class="dseller-info">
+          <div class="dseller-name">${esc(name)}${mine ? ' (you)' : ''}</div>
+          <div class="dseller-rating">${ratingLine}</div>
+        </div>
+      </div>
+
+      <div class="dsec-lbl">${isReq ? 'What they’re looking for' : 'Description'}</div>
+      <div class="ddesc">${esc(l.description || 'No description provided.')}</div>
+    </div>`;
+
+  const foot = document.getElementById('detailFoot');
+  foot.innerHTML = mine
+    ? `<div class="dnote">This is your ${isReq ? 'request' : 'listing'} · ${l.view_count || 0} view${l.view_count === 1 ? '' : 's'}</div>`
+    : `<button class="btn btn-p" id="dChatBtn" onclick="startChatFromDetail(this)">💬 ${isReq ? 'I have this — message them' : 'Start negotiation'}</button>`;
+}
+
+function swapHero(url, el){
+  const hero = document.getElementById('dHero');
+  if (hero) hero.src = url;
+  document.querySelectorAll('#detailBody .dthumb').forEach(t => t.classList.remove('on'));
+  if (el) el.classList.add('on');
+}
+
+/* The ONE entry point for a new negotiation chat — reachable only from detail. */
 let _startingChat = false;
-async function startChat(listingId){
-  if (_startingChat) return;        // ignore rapid double-taps on a listing card
+async function startChatFromDetail(btn){
+  if (_startingChat || !_detailListing) return;
   _startingChat = true;
+  const listingId = _detailListing.listing_id;
+  await once(btn, 'Opening…', async () => {
+    try {
+      const txn = await Api.createTransaction(listingId);
+      await loadChats();
+      const entry = Object.values(CHAT_CACHE).find(e => e.chat.transaction_id === txn.transaction_id);
+      closeDetail();
+      switchScreen('transactions');
+      if (entry) openChat(entry.chat.chat_id);
+    } catch (e) { showToast(e.message); }
+  });
+  _startingChat = false;
+}
+
+async function reportFromDetail(){
+  if (!_detailListing) return;
+  const reason = prompt("Report this user — what's wrong?\n(e.g. spam, scam, harassment)");
+  if (!reason || !reason.trim()) return;
   try {
-    const txn = await Api.createTransaction(listingId);
-    await loadChats();
-    const entry = Object.values(CHAT_CACHE).find(e => e.chat.transaction_id === txn.transaction_id);
-    switchScreen('transactions');
-    if (entry) openChat(entry.chat.chat_id);
+    await Api.createReport({ reported_user_id: _detailListing.seller_id, reason: reason.trim() });
+    showToast('Report submitted — thanks');
   } catch (e) { showToast(e.message); }
-  finally { _startingChat = false; }
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -1766,7 +1910,7 @@ function renderChatList(){
     c.innerHTML = emptyState({
       icon: ICON_CHAT,
       title: 'No chats yet',
-      body: 'Find something in Browse and tap it to start talking — you stay anonymous until you agree on a price.',
+      body: 'Find something in Browse, open it, and tap “Start negotiation” to begin a conversation.',
       cta: 'Browse Listings',
       onClick: "switchScreen('request')",
     });
@@ -1774,7 +1918,7 @@ function renderChatList(){
   }
   c.innerHTML = entries.map(({ chat, other, listing, txn }) => {
     const locked  = txn && txn.status !== 'negotiating';
-    const name    = other ? other.full_name : 'Anonymous';
+    const name    = other ? other.full_name : 'Member';
     const item    = listing ? listing.title : 'Listing';
     const unread  = chat.unread_count || 0;
     const preview = locked
@@ -1800,7 +1944,7 @@ async function openChat(chatId){
   const { chat, other, listing, txn } = entry;
   curTxnId = chat.transaction_id;
 
-  const name = other ? other.full_name : 'Anonymous';
+  const name = other ? other.full_name : 'Member';
   const item = listing ? listing.title : 'Listing';
   const locked = txn && txn.status !== 'negotiating';
 
@@ -1976,7 +2120,7 @@ async function acceptPrice(){
   const item  = (entry && entry.listing) ? entry.listing.title : 'this item';
   const ok = await uiConfirm({
     icon: '🔒', title: 'Lock in this price?',
-    body: `You'll agree to buy <b>${esc(item)}</b> for <b>$${price}</b>. Identities are revealed so you can arrange to meet.`,
+    body: `You'll agree to buy <b>${esc(item)}</b> for <b>$${price}</b>, then arrange to meet up on campus.`,
     okLabel: 'Accept & Lock',
   });
   if (!ok) return;

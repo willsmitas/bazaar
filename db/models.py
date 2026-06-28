@@ -224,8 +224,17 @@ class Listing(Base):
     school       : Mapped["School"]           = relationship("School", back_populates="listings")
     transactions : Mapped[List["Transaction"]] = relationship("Transaction", back_populates="listing")
 
-    # Seller trust signals surfaced on browse cards (anonymous — no identity leaked).
-    # Read through the seller relationship; eager-load it in browse to avoid N+1.
+    # Poster identity + trust signals surfaced on browse cards and the detail
+    # screen. Read through the seller relationship; eager-load it in browse to
+    # avoid N+1.
+    @property
+    def seller_name(self) -> str:
+        return self.seller.full_name if self.seller else ""
+
+    @property
+    def seller_picture_url(self) -> Optional[str]:
+        return self.seller.profile_picture_url if self.seller else None
+
     @property
     def seller_rating_avg(self) -> Decimal:
         return self.seller.rating_avg if self.seller else Decimal("0.00")
