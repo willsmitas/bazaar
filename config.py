@@ -63,6 +63,21 @@ class Settings(BaseSettings):
     aws_access_key_id:     str = ""
     aws_secret_access_key: str = ""
 
+    # ── Payments (Stripe) ─────────────────────────────────────────────────────
+    # All three are test-mode keys in dev (sk_test_… / pk_test_…). When
+    # stripe_secret_key is blank, payment endpoints return 503 and the app still
+    # runs — Stripe is optional infrastructure, like S3 storage.
+    #   stripe_secret_key      → server-side API calls (charges, transfers, refunds)
+    #   stripe_publishable_key → handed to the browser to mount the Payment Element
+    #   stripe_webhook_secret  → verifies events POSTed to /payments/webhook
+    #                            (from `stripe listen` locally, or the dashboard in prod)
+    stripe_secret_key:      str = ""
+    stripe_publishable_key: str = ""
+    stripe_webhook_secret:  str = ""
+    # Base URL Stripe Connect onboarding returns the seller to after KYC.
+    # Locally this is the dev server; in prod set it to your real domain.
+    public_base_url:        str = "http://localhost:8000"
+
     # ── Server ────────────────────────────────────────────────────────────────
     # Comma-separated allowed CORS origins, or "*" to allow any (dev only).
     # Example production value: "https://bazaar.app,https://www.bazaar.app"

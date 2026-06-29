@@ -6,6 +6,9 @@
 <title>Bazaar</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<!-- Stripe.js — powers the buyer Payment Element (escrow checkout). Safe to load
+     even when payments aren't configured; it's only used once a key is present. -->
+<script src="https://js.stripe.com/v3/"></script>
 <style>
 :root{
   /* Brand palette — overridden per-school by applyBranding() */
@@ -559,6 +562,23 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
     </div>
 
     <!-- ═══════════════════════════════
+         PAYMENT SHEET  (Stripe Payment Element, escrow checkout)
+    ════════════════════════════════ -->
+    <div class="modal" id="payModal">
+      <div class="mcard" style="text-align:left;">
+        <div class="mcard-ico" style="text-align:center;">🔒</div>
+        <div class="mcard-t" style="text-align:center;" id="pay-title">Pay securely</div>
+        <div class="mcard-d" style="text-align:center;" id="pay-sub">Your payment is held safely until you confirm the item was delivered.</div>
+        <div id="payElement" style="margin-bottom:14px;min-height:40px;"></div>
+        <div id="payError" style="display:none;color:#c0392b;font-size:13px;margin-bottom:12px;"></div>
+        <div class="row2">
+          <button class="btn btn-o" id="pay-cancel">Cancel</button>
+          <button class="btn btn-g" id="pay-submit">Pay</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════
          CHAT OVERLAY
     ════════════════════════════════ -->
     <div class="cov" id="chatOverlay">
@@ -597,6 +617,12 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
       <div id="lockDiv" style="padding:0 14px 6px;flex-shrink:0;display:none;">
         <button class="btn btn-o" id="setPriceBtn" style="font-size:13px;margin-bottom:6px;" onclick="proposePrice()">💵 Set / propose price</button>
         <button class="btn btn-g" id="lockPriceBtn" style="font-size:14px;display:none;" onclick="acceptPrice()">🔒 Accept &amp; lock</button>
+      </div>
+
+      <!-- Buyer-only: fund escrow once the price is locked. -->
+      <div id="payDiv" style="padding:0 14px 6px;flex-shrink:0;display:none;">
+        <button class="btn btn-g" id="payNowBtn" style="font-size:14px;" onclick="openPayModal()">💳 Pay securely</button>
+        <div id="payHeld" style="display:none;text-align:center;font-size:13px;color:var(--txt2);padding:4px;">🔒 Payment held in escrow — meet up to complete the deal.</div>
       </div>
 
       <div class="cinbar">
@@ -1015,6 +1041,10 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
             <div class="mrow-l"><div class="mico">💳</div><span class="mlbl">Payment Methods</span></div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </div>
+          <div class="mrow" id="payoutsRow" style="display:none;" onclick="startPayoutOnboarding()">
+            <div class="mrow-l"><div class="mico">🏦</div><span class="mlbl" id="payoutsLbl">Set up seller payouts</span></div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
           <div class="mrow" onclick="openBlockedUsers()">
             <div class="mrow-l"><div class="mico">🚫</div><span class="mlbl">Blocked Users</span></div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
@@ -1155,6 +1185,12 @@ const Api = {
   getTransaction:   (id)  => api('/transactions/' + id),
   updateTransaction:(id,b)=> api('/transactions/' + id, { method:'PUT', body:b }),
 
+  // Payments (Stripe)
+  paymentConfig:    ()    => api('/payments/config', { auth:false }),
+  connectOnboard:   ()    => api('/payments/connect/onboard', { method:'POST' }),
+  connectStatus:    ()    => api('/payments/connect/status'),
+  paymentIntent:    (id)  => api('/transactions/' + id + '/payment-intent', { method:'POST' }),
+
   blockUser:     (id)         => api('/users/' + id + '/block', { method:'POST' }),
   unblockUser:   (id)         => api('/users/' + id + '/block', { method:'DELETE' }),
   listBlocks:    ()           => api('/users/me/blocks'),
@@ -1175,6 +1211,8 @@ let curTxnId  = null;
 let photoFiles = [];           // selected listing images (File[]) — first is the cover
 let ws = null;                 // active chat WebSocket
 let renderedMsgIds = new Set();// message ids already on screen (dedupe live + REST)
+let PAY_CFG = null;            // { publishable_key, commission_rate, payments_enabled }
+let _stripe = null;            // lazily-created Stripe.js instance
 
 const val = id => document.getElementById(id).value.trim();
 function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -1844,6 +1882,7 @@ async function loadProfile(){
   document.getElementById('stRating').textContent = rc ? Number(ME.rating_avg).toFixed(1) : '—';
   document.getElementById('stRating').nextElementSibling.textContent = rc ? `Rating · ${rc}` : 'Rating';
   document.getElementById('adminRow').style.display = ME.admin_role ? 'flex' : 'none';
+  refreshPayoutsRow();   // seller payout onboarding status (Stripe Connect)
   // Profile badge: pending moderation reports for admins (nothing for regular users).
   if (ME.admin_role) {
     try { setNavBadge('navBadgeProfile', (await Api.getReports('pending')).length); } catch {}
@@ -1856,12 +1895,13 @@ async function loadProfile(){
   document.getElementById('stListed').textContent = active.length;
   renderMyListings(mine);
 
-  // Earned = sum of my completed sales
+  // Earned = sum of my completed sales, net of the app's commission (what the
+  // seller actually receives after Bazaar's cut).
   try {
     const txns = await Api.listTransactions();
     const earned = txns
       .filter(t => t.seller_id === ME.user_id && t.status === 'completed' && t.agreed_price)
-      .reduce((a, t) => a + Number(t.agreed_price), 0);
+      .reduce((a, t) => a + (Number(t.agreed_price) - Number(t.commission_amount || 0)), 0);
     document.getElementById('stEarned').textContent = '$' + earned.toFixed(0);
   } catch {}
 }
@@ -2067,6 +2107,7 @@ const TXN_STEPS = [
   { key:'completed',        label:'Done',        icon:'✅' },
 ];
 function renderTimeline(txn){
+  renderPayControls(txn);   // buyer pay button / escrow banner, kept in sync here
   const el = document.getElementById('txnTimeline');
   if (!txn) { el.style.display = 'none'; return; }
   el.style.display = 'flex';
@@ -2377,13 +2418,141 @@ document.getElementById('li-pw').addEventListener('keydown', e => { if (e.key ==
   if (el) el.addEventListener('input', () => { applyBranding(schoolForEmail(el.value)); if (id === 're-email') updateEmailHint(); });
 });
 
+/* ════════════════════════════════════════════════════════════
+   PAYMENTS  (Stripe Connect escrow)
+   Sellers onboard a connected account to receive payouts; buyers
+   fund escrow via the Payment Element once a price is locked.
+════════════════════════════════════════════════════════════ */
+async function loadPaymentConfig(){
+  try { PAY_CFG = await Api.paymentConfig(); }
+  catch { PAY_CFG = { payments_enabled:false, publishable_key:'', commission_rate:0.05 }; }
+}
+
+// Lazily create the Stripe.js client from the publishable key.
+function stripeJs(){
+  if (!_stripe && PAY_CFG && PAY_CFG.publishable_key && window.Stripe) _stripe = Stripe(PAY_CFG.publishable_key);
+  return _stripe;
+}
+
+// Toast + status refresh when a seller returns from Stripe onboarding.
+function handleOnboardReturn(){
+  const params = new URLSearchParams(window.location.search);
+  const state  = params.get('stripe_onboard');
+  if (!state) return;
+  history.replaceState(null, '', window.location.pathname);   // clean the URL
+  if (state === 'done') showToast('Payout setup complete — checking status…');
+  refreshPayoutsRow();
+}
+
+// ── Seller: payout onboarding ─────────────────────────────────────────────────
+async function refreshPayoutsRow(){
+  const row = document.getElementById('payoutsRow');
+  const lbl = document.getElementById('payoutsLbl');
+  if (!row) return;
+  if (!(PAY_CFG && PAY_CFG.payments_enabled)) { row.style.display = 'none'; return; }
+  row.style.display = 'flex';
+  try {
+    const st = await Api.connectStatus();
+    lbl.textContent = st.payouts_enabled ? '🏦 Payouts ready ✓'
+                    : st.has_account     ? 'Finish payout setup'
+                    :                      'Set up seller payouts';
+  } catch { lbl.textContent = 'Set up seller payouts'; }
+}
+
+async function startPayoutOnboarding(){
+  try {
+    const { onboarding_url } = await Api.connectOnboard();
+    window.location.href = onboarding_url;   // hosted Stripe onboarding/KYC
+  } catch (e) { showToast(e.message); }
+}
+
+// ── Buyer: which deal control to show (pay button vs escrow banner) ───────────
+function renderPayControls(txn){
+  const div  = document.getElementById('payDiv');
+  const btn  = document.getElementById('payNowBtn');
+  const held = document.getElementById('payHeld');
+  if (!div) return;
+  const isBuyer = txn && ME && txn.buyer_id === ME.user_id;
+  if (!txn || !isBuyer || !(PAY_CFG && PAY_CFG.payments_enabled)) { div.style.display = 'none'; return; }
+
+  const paid = txn.payment_status === 'paid' || txn.payment_status === 'released';
+  if (txn.status === 'price_locked' && !paid) {
+    const amt = txn.agreed_price != null ? ' $' + Number(txn.agreed_price).toFixed(0) : '';
+    btn.textContent = '💳 Pay securely' + amt;
+    div.style.display = 'block'; btn.style.display = 'block'; held.style.display = 'none';
+  } else if (paid && txn.status !== 'completed' && txn.status !== 'cancelled') {
+    div.style.display = 'block'; btn.style.display = 'none'; held.style.display = 'block';
+  } else {
+    div.style.display = 'none';
+  }
+}
+
+// ── Buyer: the Payment Element sheet ──────────────────────────────────────────
+let _payElements = null;
+
+async function openPayModal(){
+  if (!curTxnId) return;
+  const stripe = stripeJs();
+  if (!stripe) { showToast('Payments are unavailable right now'); return; }
+
+  const modal     = document.getElementById('payModal');
+  const errEl     = document.getElementById('payError');
+  const submitBtn = document.getElementById('pay-submit');
+  errEl.style.display = 'none';
+
+  let intent;
+  try { intent = await Api.paymentIntent(curTxnId); }
+  catch (e) { showToast(e.message); return; }
+
+  const amount = Number(intent.amount).toFixed(2);
+  document.getElementById('pay-sub').textContent = `Pay $${amount} — held safely until you confirm the item was delivered.`;
+  submitBtn.textContent = `Pay $${amount}`;
+  submitBtn.disabled = false;
+
+  // Mount a fresh Payment Element for this client secret.
+  _payElements = stripe.elements({ clientSecret: intent.client_secret });
+  document.getElementById('payElement').innerHTML = '';
+  _payElements.create('payment').mount('#payElement');
+  modal.classList.add('open');
+
+  document.getElementById('pay-cancel').onclick = () => closePayModal();
+  submitBtn.onclick = async () => {
+    submitBtn.disabled = true; submitBtn.textContent = 'Processing…';
+    const { error } = await stripe.confirmPayment({
+      elements: _payElements,
+      confirmParams: { return_url: window.location.origin },
+      redirect: 'if_required',
+    });
+    if (error) {
+      errEl.textContent = error.message || 'Payment could not be completed.';
+      errEl.style.display = 'block';
+      submitBtn.disabled = false; submitBtn.textContent = `Pay $${amount}`;
+      return;
+    }
+    // Charge succeeded — escrow is funded. Reflect it optimistically (the
+    // payment_intent.succeeded webhook advances the deal to Pay & Meet).
+    closePayModal();
+    showToast('Payment held in escrow 🔒');
+    const entry = CHAT_CACHE[curChatId];
+    if (entry && entry.txn) { entry.txn.payment_status = 'paid'; renderTimeline(entry.txn); }
+    refreshOpenTxn();
+  };
+}
+
+function closePayModal(){
+  document.getElementById('payModal').classList.remove('open');
+  document.getElementById('payElement').innerHTML = '';
+  _payElements = null;
+}
+
 (async function boot(){
   initFilters();                  // restore saved category/sort selections
   renderGallery();                // render the empty photo gallery (Add tile)
-  await loadSchools();
+  await Promise.all([ loadSchools(), loadPaymentConfig() ]);
   applyBranding(null);            // neutral sign-in branding until we know the school
   if (Tok.access) await enterApp();
   else showAuth();
+  handleOnboardReturn();          // toast + status refresh after Stripe onboarding
 })();
 </script>
 </body>

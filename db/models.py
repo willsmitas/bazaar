@@ -69,6 +69,24 @@ class ReportStatus(str, enum.Enum):
     dismissed = "dismissed"
 
 
+class PaymentStatus(str, enum.Enum):
+    """Money state of a transaction, orthogonal to its TxnStatus lifecycle.
+
+    unpaid → buyer hasn't paid yet
+    processing → PaymentIntent created/confirming
+    paid → funds captured to the platform and held in escrow
+    released → transferred to the seller (minus commission) on delivery
+    refunded → returned to the buyer (deal cancelled/disputed)
+    failed → the charge did not go through
+    """
+    unpaid     = "unpaid"
+    processing = "processing"
+    paid       = "paid"
+    released   = "released"
+    refunded   = "refunded"
+    failed     = "failed"
+
+
 class AdminRole(str, enum.Enum):
     school_admin = "school_admin"   # can moderate within their own school only
     global_admin = "global_admin"   # can moderate across all schools
@@ -151,6 +169,12 @@ class User(Base):
     )
     suspension_ends_at    : Mapped[Optional[datetime]] = mapped_column(TIMESTAMPTZ)
     ban_reason            : Mapped[Optional[str]]      = mapped_column(Text)
+
+    # Payments — a seller's Stripe Connect (Express) account, used to receive
+    # payouts. payouts_enabled mirrors Stripe's charges/payouts capability and is
+    # kept fresh by the account.updated webhook.
+    stripe_account_id     : Mapped[Optional[str]]      = mapped_column(Text)
+    stripe_payouts_enabled: Mapped[bool]               = mapped_column(Boolean, nullable=False, default=False)
 
     # Timestamps
     created_at            : Mapped[datetime]           = mapped_column(TIMESTAMPTZ, nullable=False, server_default=func.now())
@@ -267,12 +291,23 @@ class Transaction(Base):
     price_locked_at   : Mapped[Optional[datetime]] = mapped_column(TIMESTAMPTZ)
     completed_at      : Mapped[Optional[datetime]] = mapped_column(TIMESTAMPTZ)
 
+    # Payments — escrow flow via Stripe Connect (separate charges & transfers).
+    # The buyer's charge lands on the platform (payment_intent/charge), is held,
+    # then released to the seller (transfer) on delivery or refunded on cancel.
+    payment_status           : Mapped[PaymentStatus]      = mapped_column(String(20), nullable=False, default=PaymentStatus.unpaid)
+    stripe_payment_intent_id : Mapped[Optional[str]]      = mapped_column(Text)
+    stripe_charge_id         : Mapped[Optional[str]]      = mapped_column(Text)
+    stripe_transfer_id       : Mapped[Optional[str]]      = mapped_column(Text)
+    paid_at                  : Mapped[Optional[datetime]] = mapped_column(TIMESTAMPTZ)
+    released_at              : Mapped[Optional[datetime]] = mapped_column(TIMESTAMPTZ)
+
     created_at        : Mapped[datetime]           = mapped_column(TIMESTAMPTZ, nullable=False, server_default=func.now())
     updated_at        : Mapped[datetime]           = mapped_column(TIMESTAMPTZ, nullable=False, server_default=func.now(), onupdate=func.now())
 
     __table_args__ = (
         CheckConstraint("buyer_id <> seller_id", name="ck_buyer_ne_seller"),
         CheckConstraint("agreed_price >= 0",     name="ck_agreed_price_positive"),
+        Index("idx_txns_payment_status", "payment_status"),
     )
 
     listing : Mapped["Listing"]           = relationship("Listing", back_populates="transactions")

@@ -54,6 +54,15 @@ CREATE TYPE report_status AS ENUM (
     'dismissed'
 );
 
+CREATE TYPE payment_status AS ENUM (
+    'unpaid',       -- buyer hasn't paid yet
+    'processing',   -- PaymentIntent created / confirming
+    'paid',         -- captured to the platform, held in escrow
+    'released',     -- transferred to the seller (minus commission)
+    'refunded',     -- returned to the buyer
+    'failed'        -- the charge did not go through
+);
+
 CREATE TYPE admin_role AS ENUM (
     'school_admin',   -- can moderate within own school only
     'global_admin'    -- can moderate across all schools
@@ -116,6 +125,10 @@ CREATE TABLE users (
     suspension_ends_at    TIMESTAMPTZ,           -- NULL unless suspended
     ban_reason            TEXT,                  -- admin note
 
+    -- Payments — seller's Stripe Connect (Express) account for receiving payouts.
+    stripe_account_id      TEXT,
+    stripe_payouts_enabled BOOLEAN NOT NULL DEFAULT FALSE,  -- mirrors Stripe; set by webhook
+
     -- Timestamps
     created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -175,6 +188,14 @@ CREATE TABLE transactions (
     status            txn_status    NOT NULL DEFAULT 'negotiating',
     price_locked_at   TIMESTAMPTZ,   -- set when both parties lock the price
     completed_at      TIMESTAMPTZ,   -- set on successful delivery
+
+    -- Payments — escrow via Stripe Connect (separate charges & transfers).
+    payment_status           payment_status NOT NULL DEFAULT 'unpaid',
+    stripe_payment_intent_id TEXT,          -- buyer's charge, held on the platform
+    stripe_charge_id         TEXT,          -- the charge backing the PaymentIntent (transfer source)
+    stripe_transfer_id       TEXT,          -- payout to the seller on release
+    paid_at                  TIMESTAMPTZ,   -- escrow funded
+    released_at              TIMESTAMPTZ,   -- transferred to the seller
 
     created_at        TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
@@ -288,6 +309,7 @@ CREATE INDEX idx_txns_buyer           ON transactions(buyer_id);
 CREATE INDEX idx_txns_seller          ON transactions(seller_id);
 CREATE INDEX idx_txns_listing         ON transactions(listing_id);
 CREATE INDEX idx_txns_status          ON transactions(status);
+CREATE INDEX idx_txns_payment_status  ON transactions(payment_status);
 
 CREATE INDEX idx_msgs_chat            ON messages(chat_id);
 CREATE INDEX idx_msgs_sent_at         ON messages(sent_at DESC);

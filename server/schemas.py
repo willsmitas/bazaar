@@ -12,7 +12,7 @@ from pydantic import BaseModel, EmailStr, ConfigDict, Field, field_validator, mo
 
 from db.models import (
     AccountStatus, AdminRole, ItemCondition, ListingStatus,
-    ListingType, ReportStatus, TxnStatus,
+    ListingType, PaymentStatus, ReportStatus, TxnStatus,
 )
 
 
@@ -204,9 +204,40 @@ class TransactionResponse(BaseModel):
     commission_rate:   Decimal
     commission_amount: Optional[Decimal]
     status:            TxnStatus
+    # Money state — distinct from `status` (the delivery lifecycle). Raw Stripe
+    # ids are deliberately not exposed; only the high-level state and timestamps.
+    payment_status:    PaymentStatus
+    paid_at:           Optional[datetime]
+    released_at:       Optional[datetime]
     price_locked_at:   Optional[datetime]
     completed_at:      Optional[datetime]
     created_at:        datetime
+
+
+# ── Payments ──────────────────────────────────────────────────────────────────
+
+class PaymentConfigResponse(BaseModel):
+    """Public payment config the browser needs to mount the Payment Element."""
+    publishable_key:    str
+    commission_rate:    Decimal
+    payments_enabled:   bool
+
+
+class OnboardResponse(BaseModel):
+    """Hosted Stripe Connect onboarding link for a seller."""
+    onboarding_url: str
+
+
+class ConnectStatusResponse(BaseModel):
+    payouts_enabled: bool
+    has_account:     bool
+
+
+class PaymentIntentResponse(BaseModel):
+    """Returned to the buyer to confirm a charge client-side."""
+    client_secret:   str
+    publishable_key: str
+    amount:          Decimal
 
 
 # ── Chat & Messages ───────────────────────────────────────────────────────────

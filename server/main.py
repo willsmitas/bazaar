@@ -17,7 +17,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from config import settings
-from server.routers import admin, auth, blocks, chats, listings, ratings, reports, schools, transactions, users, ws
+from server.routers import admin, auth, blocks, chats, listings, payments, ratings, reports, schools, transactions, users, ws
 
 app = FastAPI(
     title="Bazaar API",
@@ -56,6 +56,7 @@ app.include_router(blocks.router)
 app.include_router(schools.router)
 app.include_router(listings.router)
 app.include_router(transactions.router)
+app.include_router(payments.router)
 app.include_router(chats.router)
 app.include_router(ratings.router)
 app.include_router(reports.router)
@@ -71,7 +72,9 @@ def health():
 @app.get("/{full_path:path}")
 async def serve_frontend(full_path: str):
     try:
-        with open("index.html") as f:
+        # Force UTF-8 — the file contains emoji/box-drawing chars, and the
+        # platform default (cp1252 on Windows) can't decode them.
+        with open("index.html", encoding="utf-8") as f:
             return HTMLResponse(f.read())
     except FileNotFoundError:
         return {"detail": "Not Found"}, 404

@@ -1,13 +1,19 @@
 from datetime import datetime, timezone
 from typing import List
 
+import stripe
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from db.models import Chat, Listing, ListingStatus, Transaction, TxnStatus, User
+from config import settings
+from db.models import (
+    Chat, Listing, ListingStatus, PaymentStatus, Transaction, TxnStatus, User,
+)
+from server import stripe_client as sc
 from server.dependencies import get_blocked_user_ids, get_verified_user, get_db
 from server.schemas import (
     CreateTransactionRequest,
+    PaymentIntentResponse,
     TransactionResponse,
     UpdateTransactionRequest,
 )
@@ -111,8 +117,17 @@ def update_transaction(
 
     if body.status is not None:
         _validate_transition(txn.status, body.status)
-        if body.status == TxnStatus.price_locked and txn.agreed_price is None:
-            raise HTTPException(status_code=400, detail="Set an agreed price before locking the deal")
+        if body.status == TxnStatus.price_locked:
+            if txn.agreed_price is None:
+                raise HTTPException(status_code=400, detail="Set an agreed price before locking the deal")
+            # The buyer pays into escrow at lock, so the seller must be able to
+            # receive a payout before the deal can lock. Skipped when Stripe
+            # isn't configured (the app still runs without payments).
+            if sc.is_configured() and not txn.seller.stripe_payouts_enabled:
+                raise HTTPException(
+                    status_code=400,
+                    detail="The seller hasn't set up payouts yet — they need to finish Stripe onboarding before the price can be locked.",
+                )
         txn.status = body.status
 
         if body.status == TxnStatus.price_locked:
@@ -128,7 +143,61 @@ def update_transaction(
     return txn
 
 
+@router.post("/{txn_id}/payment-intent", response_model=PaymentIntentResponse)
+def create_payment_intent(
+    txn_id:       str,
+    current_user: User    = Depends(get_verified_user),
+    db:           Session = Depends(get_db),
+):
+    """Buyer-only: create (or resume) the Stripe PaymentIntent that funds escrow.
+
+    The amount is computed server-side from the locked agreed_price — never taken
+    from the client. Returns the client_secret the browser confirms with.
+    """
+    if not sc.is_configured():
+        raise HTTPException(status_code=503, detail="Payments are not configured")
+
+    txn = _get_or_404(txn_id, db)
+    if current_user.user_id != txn.buyer_id:
+        raise HTTPException(status_code=403, detail="Only the buyer can pay for this deal")
+    if txn.status != TxnStatus.price_locked:
+        raise HTTPException(status_code=400, detail="Lock in the price before paying")
+    if txn.payment_status in (PaymentStatus.paid, PaymentStatus.released):
+        raise HTTPException(status_code=400, detail="This deal has already been paid")
+    if txn.agreed_price is None:
+        raise HTTPException(status_code=400, detail="No agreed price on this deal")
+
+    try:
+        intent = _get_or_create_intent(txn)
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=502, detail=f"Stripe error: {e.user_message or str(e)}")
+
+    txn.stripe_payment_intent_id = intent.id
+    if txn.payment_status == PaymentStatus.unpaid:
+        txn.payment_status = PaymentStatus.processing
+    db.commit()
+
+    return PaymentIntentResponse(
+        client_secret=intent.client_secret,
+        publishable_key=settings.stripe_publishable_key,
+        amount=txn.agreed_price,
+    )
+
+
 # ── helpers ───────────────────────────────────────────────────────────────────
+
+def _get_or_create_intent(txn: Transaction) -> "stripe.PaymentIntent":
+    """Reuse the transaction's PaymentIntent if it's still confirmable, else make
+    a new one. Keeps a single live charge per deal."""
+    _REUSABLE = {
+        "requires_payment_method", "requires_confirmation",
+        "requires_action", "processing",
+    }
+    if txn.stripe_payment_intent_id:
+        existing = stripe.PaymentIntent.retrieve(txn.stripe_payment_intent_id)
+        if existing.status in _REUSABLE:
+            return existing
+    return sc.create_payment_intent(sc.to_cents(txn.agreed_price), str(txn.transaction_id))
 
 def _get_or_404(txn_id: str, db: Session) -> Transaction:
     txn = db.query(Transaction).filter(Transaction.transaction_id == txn_id).first()
@@ -151,7 +220,14 @@ def _validate_transition(current: TxnStatus, next_status: TxnStatus) -> None:
 
 
 def _on_completed(txn: Transaction, db: Session) -> None:
-    """Side-effects when a transaction is marked complete."""
+    """Side-effects when a transaction is marked complete.
+
+    Releases the escrowed funds to the seller (minus commission), then updates
+    reputation counters and marks the listing sold. Raising here before the
+    caller's commit leaves the deal untouched if the payout can't be made.
+    """
+    _release_escrow(txn)
+
     # Increment transaction counter on both users
     for uid in (txn.buyer_id, txn.seller_id):
         user = db.query(User).filter(User.user_id == uid).first()
@@ -164,9 +240,56 @@ def _on_completed(txn: Transaction, db: Session) -> None:
         listing.status = ListingStatus.sold
 
 
+def _release_escrow(txn: Transaction) -> None:
+    """Transfer the held charge to the seller, retaining the commission.
+
+    No-op when Stripe isn't configured (cash-only fallback) or the deal was
+    already released. Requires the escrow to be funded first.
+    """
+    if not sc.is_configured() or txn.payment_status == PaymentStatus.released:
+        return
+    if txn.payment_status != PaymentStatus.paid:
+        raise HTTPException(
+            status_code=400,
+            detail="The buyer must complete payment before the deal can be marked delivered",
+        )
+
+    seller = txn.seller
+    payout = txn.agreed_price - (txn.commission_amount or txn.compute_commission() or 0)
+    try:
+        transfer = sc.create_transfer(
+            amount_cents=sc.to_cents(payout),
+            destination=seller.stripe_account_id,
+            source_transaction=txn.stripe_charge_id,
+            transaction_id=str(txn.transaction_id),
+        )
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=502, detail=f"Could not release payout: {e.user_message or str(e)}")
+
+    txn.stripe_transfer_id = transfer.id
+    txn.payment_status     = PaymentStatus.released
+    txn.released_at        = datetime.now(timezone.utc)
+
+
 def _on_cancelled(txn: Transaction, db: Session) -> None:
-    """When a deal falls through, release the listing back to the marketplace
-    so it shows up in browse again and can take new offers."""
+    """When a deal falls through, refund any escrowed payment to the buyer and
+    release the listing back to the marketplace so it can take new offers."""
+    _refund_escrow(txn)
+
     listing = db.query(Listing).filter(Listing.listing_id == txn.listing_id).first()
     if listing and listing.status == ListingStatus.in_negotiation:
         listing.status = ListingStatus.active
+
+
+def _refund_escrow(txn: Transaction) -> None:
+    """Refund the buyer if escrow was funded. No-op otherwise. Funds already
+    released to the seller can't be auto-refunded — that's a manual dispute."""
+    if not sc.is_configured() or txn.payment_status != PaymentStatus.paid:
+        return
+    if not txn.stripe_payment_intent_id:
+        return
+    try:
+        sc.create_refund(txn.stripe_payment_intent_id, str(txn.transaction_id))
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=502, detail=f"Could not refund the buyer: {e.user_message or str(e)}")
+    txn.payment_status = PaymentStatus.refunded
