@@ -208,5 +208,4 @@ Nothing structural changes — only configuration:
 - **Per-chat sockets:** only the open conversation updates live; the chat *list* (unread
   counts) does not. A per-user socket would fix that.
 - **WS token in query string** is fine for dev; production should use a short-lived ticket.
-- **Payments** (Stripe Connect for commission collection) and **push notifications** are
-  not yet built.
+- **Push notifications** are not yet built.

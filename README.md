@@ -58,5 +58,5 @@ ARCHITECTURE.md   full architecture reference
 
 ## Status
 
-Active development. Not yet built: **payments** (Stripe Connect for commission) and
-**push notifications**. See the limitations section of [ARCHITECTURE.md](ARCHITECTURE.md).
+Active development. Not yet built: **push notifications**. See the limitations
+section of [ARCHITECTURE.md](ARCHITECTURE.md).
