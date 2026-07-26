@@ -16,7 +16,8 @@ router = APIRouter(prefix="/transactions", tags=["transactions"])
 
 # Valid status transitions: current → allowed next states
 _TRANSITIONS: dict[TxnStatus, set[TxnStatus]] = {
-    TxnStatus.negotiating:      {TxnStatus.price_locked, TxnStatus.cancelled},
+    # Either party can close a deal straight from the chat once they've met up.
+    TxnStatus.negotiating:      {TxnStatus.completed, TxnStatus.price_locked, TxnStatus.cancelled},
     TxnStatus.price_locked:     {TxnStatus.pending_delivery, TxnStatus.disputed, TxnStatus.cancelled},
     TxnStatus.pending_delivery: {TxnStatus.completed, TxnStatus.disputed},
     TxnStatus.completed:        set(),

@@ -594,9 +594,8 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
 
       <div class="msgs" id="msgs"></div>
 
-      <div id="lockDiv" style="padding:0 14px 6px;flex-shrink:0;display:none;">
-        <button class="btn btn-o" id="setPriceBtn" style="font-size:13px;margin-bottom:6px;" onclick="proposePrice()">💵 Set / propose price</button>
-        <button class="btn btn-g" id="lockPriceBtn" style="font-size:14px;display:none;" onclick="acceptPrice()">🔒 Accept &amp; lock</button>
+      <div id="dealDiv" style="padding:0 14px 6px;flex-shrink:0;display:none;">
+        <button class="btn btn-g" id="completeBtn" style="font-size:14px;" onclick="completeDeal()">✅ Mark deal complete</button>
       </div>
 
       <div class="cinbar">
@@ -982,7 +981,6 @@ textarea.inp{resize:none;height:84px;line-height:1.5;}
         <div class="pstat"><div class="pstat-v" id="stListed">0</div><div class="pstat-l">Listed</div></div>
         <div class="pstat"><div class="pstat-v" id="stSold">0</div><div class="pstat-l">Sold</div></div>
         <div class="pstat"><div class="pstat-v" id="stRating">—</div><div class="pstat-l">Rating</div></div>
-        <div class="pstat"><div class="pstat-v" id="stEarned">$0</div><div class="pstat-l">Earned</div></div>
       </div>
 
       <div class="content" style="padding-top:20px;">
@@ -1855,15 +1853,6 @@ async function loadProfile(){
   const active = mine.filter(l => l.status !== 'removed' && l.status !== 'sold');
   document.getElementById('stListed').textContent = active.length;
   renderMyListings(mine);
-
-  // Earned = sum of my completed sales
-  try {
-    const txns = await Api.listTransactions();
-    const earned = txns
-      .filter(t => t.seller_id === ME.user_id && t.status === 'completed' && t.agreed_price)
-      .reduce((a, t) => a + Number(t.agreed_price), 0);
-    document.getElementById('stEarned').textContent = '$' + earned.toFixed(0);
-  } catch {}
 }
 
 function renderMyListings(arr){
@@ -1922,6 +1911,7 @@ function renderChatList(){
   const actAt = e => e.chat.last_message_at || e.chat.created_at;
   const entries = Object.values(CHAT_CACHE).sort((a,b) => new Date(actAt(b)) - new Date(actAt(a)));
   document.getElementById('tab-a').textContent = `Active (${entries.length})`;
+  setCompletedCount(entries.filter(e => e.txn && e.txn.status === 'completed').length);
   // Nav badge = total unread messages across all conversations.
   const totalUnread = entries.reduce((n, { chat }) => n + (chat.unread_count || 0), 0);
   setNavBadge('navBadgeChats', totalUnread);
@@ -1936,19 +1926,19 @@ function renderChatList(){
     return;
   }
   c.innerHTML = entries.map(({ chat, other, listing, txn }) => {
-    const locked  = txn && txn.status !== 'negotiating';
+    const closed  = txn && txn.status !== 'negotiating';
     const name    = other ? other.full_name : 'Member';
     const item    = listing ? listing.title : 'Listing';
     const unread  = chat.unread_count || 0;
-    const preview = locked
-      ? `🔒 ${cap(txn.status)}${txn.agreed_price ? ' · $' + Number(txn.agreed_price).toFixed(0) : ''}`
+    const preview = closed
+      ? `${txn.status === 'completed' ? '✅' : '🔒'} ${cap(txn.status)}`
       : 'About: ' + item;
     return `<div class="cli${unread ? ' unread' : ''}" onclick="openChat('${chat.chat_id}')">
       <div class="av av-b">${initials(name)}</div>
       <div class="cm">
         <div class="cnr"><span class="cn">${esc(name)}</span><span class="ct">${timeAgo(chat.last_message_at || chat.created_at)}</span></div>
         <div class="cpr">
-          <span class="cp"${locked ? ' style="color:#16A34A;font-weight:600;"' : ''}>${esc(preview)}</span>
+          <span class="cp"${closed ? ' style="color:#16A34A;font-weight:600;"' : ''}>${esc(preview)}</span>
           ${unread ? `<span class="cbadge">${unread > 9 ? '9+' : unread}</span>` : ''}
         </div>
       </div>
@@ -1965,18 +1955,18 @@ async function openChat(chatId){
 
   const name = other ? other.full_name : 'Member';
   const item = listing ? listing.title : 'Listing';
-  const locked = txn && txn.status !== 'negotiating';
+  const closed = txn && txn.status !== 'negotiating';
 
   document.getElementById('cName').textContent = name;
-  document.getElementById('cSub').textContent  = (locked ? '🔒 ' + cap(txn.status) : 'Negotiating') + ' · ' + item;
+  document.getElementById('cSub').textContent  = statusLabel(txn) + ' · ' + item;
   document.getElementById('cAv').textContent   = initials(name);
   document.getElementById('cAv').className     = 'chdr-av av-b';
   document.getElementById('iIco').textContent  = iconFor(listing);
   document.getElementById('iName').textContent = item;
   document.getElementById('iDesc').textContent = listing ? [cap(listing.condition), listing.category].filter(Boolean).join(' · ') : '';
   const ip = document.getElementById('iPrice');
-  ip.textContent = (txn && txn.agreed_price) ? '$' + Number(txn.agreed_price).toFixed(0) : (listing ? money(listing) : '—');
-  ip.className = 'ibanner-price' + (locked ? ' locked' : '');
+  ip.textContent = listing ? money(listing) : '—';
+  ip.className = 'ibanner-price' + (closed ? ' locked' : '');
 
   const area = document.getElementById('msgs');
   area.innerHTML = `<div class="mtime">Loading…</div>`;
@@ -1988,8 +1978,14 @@ async function openChat(chatId){
   catch (e) { area.innerHTML = `<div class="mtime">${esc(e.message)}</div>`; }
   openSocket(chatId);
 
-  renderPriceControls(txn);
+  renderDealControls(txn);
   renderTimeline(txn);
+}
+
+/* Header subtitle for a chat: plain "Negotiating" until the deal closes out. */
+function statusLabel(txn){
+  if (!txn || txn.status === 'negotiating') return 'Negotiating';
+  return (txn.status === 'completed' ? '✅ ' : '🔒 ') + cap(txn.status);
 }
 
 function renderMessages(msgs){
@@ -2016,7 +2012,7 @@ function appendIncoming(m){
   // The chat is open and on-screen, so a message from the other person is already
   // "read" — clear it server-side so it doesn't resurface as unread later.
   if (m.sender_id && m.sender_id !== ME.user_id && curChatId) Api.markRead(curChatId).catch(() => {});
-  if (/💵|🔒/.test(m.content)) refreshOpenTxn();   // a price was proposed/locked → resync
+  if (/^✅/.test(m.content || '')) refreshOpenTxn();   // deal was closed → resync
 }
 
 /* Live updates: one WebSocket per open chat. */
@@ -2058,118 +2054,81 @@ async function sendMsg(){
   catch (e) { bubble.style.opacity = .5; showToast(e.message); }
 }
 
-/* Visual progress of the deal: Negotiating → Locked → Pay & Meet → Done.
-   cancelled/disputed render as a single status pill instead of the stepper. */
+/* Visual progress of the deal: Chatting → Done.
+   Anything else (cancelled, disputed, or a legacy mid-negotiation state left over
+   from the old price-lock flow) renders as a single status pill instead. */
 const TXN_STEPS = [
-  { key:'negotiating',      label:'Negotiating', icon:'🔓' },
-  { key:'price_locked',     label:'Locked',      icon:'🤝' },
-  { key:'pending_delivery', label:'Pay & Meet',  icon:'💰' },
-  { key:'completed',        label:'Done',        icon:'✅' },
+  { key:'negotiating', label:'Chatting', icon:'💬' },
+  { key:'completed',   label:'Done',     icon:'✅' },
 ];
 function renderTimeline(txn){
   const el = document.getElementById('txnTimeline');
   if (!txn) { el.style.display = 'none'; return; }
   el.style.display = 'flex';
-  if (txn.status === 'cancelled' || txn.status === 'disputed') {
-    el.innerHTML = `<div class="tline-alt ${txn.status}">${txn.status === 'cancelled' ? '✕ Cancelled' : '⚠ Disputed'}</div>`;
+  const idx = TXN_STEPS.findIndex(s => s.key === txn.status);
+  if (idx === -1) {
+    const cls = txn.status === 'cancelled' ? 'cancelled' : 'disputed';
+    const lbl = txn.status === 'cancelled' ? '✕ Cancelled'
+              : txn.status === 'disputed'  ? '⚠ Disputed'
+              : '🔒 ' + cap(txn.status);
+    el.innerHTML = `<div class="tline-alt ${cls}">${lbl}</div>`;
     return;
   }
-  const idx = TXN_STEPS.findIndex(s => s.key === txn.status);
   el.innerHTML = TXN_STEPS.map((s, i) => {
     const cls = i < idx ? 'done' : (i === idx ? 'cur' : '');
     return `<div class="tstep ${cls}"><div class="tdot">${i < idx ? '✓' : s.icon}</div><div class="tlbl">${s.label}</div></div>`;
   }).join('');
 }
 
-function renderPriceControls(txn){
-  const div = document.getElementById('lockDiv');
-  const lockBtn = document.getElementById('lockPriceBtn');
-  if (!txn || txn.status !== 'negotiating') { div.style.display = 'none'; return; }
-  div.style.display = 'block';
-  if (txn.agreed_price != null) {
-    lockBtn.style.display = 'block';
-    lockBtn.textContent = `🔒 Accept & lock at $${Number(txn.agreed_price).toFixed(0)}`;
-  } else {
-    lockBtn.style.display = 'none';
-  }
+/* The "mark complete" button only shows while a deal is still open, and only for
+   the states the server accepts a direct → completed transition from. */
+const COMPLETABLE = ['negotiating', 'pending_delivery'];
+function renderDealControls(txn){
+  const div = document.getElementById('dealDiv');
+  div.style.display = (txn && COMPLETABLE.includes(txn.status)) ? 'block' : 'none';
 }
 
-function updateBannerPrice(txn){
-  const ip = document.getElementById('iPrice');
-  if (txn && txn.agreed_price != null) ip.textContent = '$' + Number(txn.agreed_price).toFixed(0);
-  ip.className = 'ibanner-price' + (txn && txn.status !== 'negotiating' ? ' locked' : '');
-}
-
-// Send arbitrary content (price announcements) over the socket, REST as fallback.
+// Post a system note (deal announcements) over the socket, REST as fallback.
 function sendContent(text){
   if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ content: text }));
   else if (curChatId) Api.sendMessage(curChatId, text).catch(() => {});
 }
 
-async function proposePrice(){
+async function completeDeal(){
   if (!curTxnId) return;
   const entry = CHAT_CACHE[curChatId];
-  const cur = entry && entry.txn ? entry.txn.agreed_price : null;
-  const input = prompt('Propose a price ($):', cur != null ? Number(cur).toFixed(0) : '');
-  if (input === null) return;
-  const amt = Number(input);
-  if (!(amt > 0)) { showToast('Enter a valid dollar amount'); return; }
-  const item = (entry && entry.listing) ? entry.listing.title : 'this item';
-  const ok = await uiConfirm({
-    icon: '💵', title: 'Send this offer?',
-    body: `You're offering <b>$${amt.toFixed(0)}</b> for <b>${esc(item)}</b>.<br>They can accept to lock the price in.`,
-    okLabel: 'Send Offer',
-  });
-  if (!ok) return;
-  try {
-    const txn = await Api.updateTransaction(curTxnId, { agreed_price: amt });
-    if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = txn;
-    renderPriceControls(txn);
-    updateBannerPrice(txn);
-    renderTimeline(txn);
-    sendContent(`💵 Proposed $${amt.toFixed(0)} — tap "Accept & lock" to confirm.`);
-    showToast('Price proposed');
-  } catch (e) { showToast(e.message); }
-}
-
-async function acceptPrice(){
-  if (!curTxnId) return;
-  const entry = CHAT_CACHE[curChatId];
-  const price = entry && entry.txn && entry.txn.agreed_price != null ? Number(entry.txn.agreed_price).toFixed(0) : null;
   const item  = (entry && entry.listing) ? entry.listing.title : 'this item';
   const ok = await uiConfirm({
-    icon: '🔒', title: 'Lock in this price?',
-    body: `You'll agree to buy <b>${esc(item)}</b> for <b>$${price}</b>, then arrange to meet up on campus.`,
-    okLabel: 'Accept & Lock',
+    icon: '✅', title: 'Mark this deal complete?',
+    body: `Confirm you've met up and handed over <b>${esc(item)}</b>.<br>This can't be undone, and it counts toward both of your completed deals.`,
+    okLabel: 'Mark Complete',
   });
   if (!ok) return;
   try {
-    const txn = await Api.updateTransaction(curTxnId, { status: 'price_locked' });
+    const txn = await Api.updateTransaction(curTxnId, { status: 'completed' });
     if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = txn;
-    updateBannerPrice(txn);
-    renderPriceControls(txn);
+    renderDealControls(txn);
     renderTimeline(txn);
-    const item = (CHAT_CACHE[curChatId] && CHAT_CACHE[curChatId].listing) ? CHAT_CACHE[curChatId].listing.title : '';
-    document.getElementById('cSub').textContent = '🔒 Price Locked · ' + item;
-    const fee = txn.commission_amount;
-    sendContent(`🔒 Locked at $${Number(txn.agreed_price).toFixed(0)}` + (fee ? ` · app fee $${Number(fee).toFixed(2)}` : ''));
-    showToast('Price locked!');
+    document.getElementById('cSub').textContent = statusLabel(txn) + ' · ' + item;
+    document.getElementById('iPrice').className = 'ibanner-price locked';
+    sendContent('✅ Deal marked complete.');
+    showToast('Deal completed!');
     renderChatList();
   } catch (e) { showToast(e.message); }
 }
 
-// A price message arrived → re-fetch the transaction so both sides stay in sync.
+// The other side closed the deal → re-fetch the transaction so both stay in sync.
 async function refreshOpenTxn(){
   if (!curChatId || !curTxnId) return;
   try {
     const txn = await Api.getTransaction(curTxnId);
     if (CHAT_CACHE[curChatId]) CHAT_CACHE[curChatId].txn = txn;
-    renderPriceControls(txn);
-    updateBannerPrice(txn);
+    renderDealControls(txn);
     renderTimeline(txn);
     if (txn.status !== 'negotiating') {
       const item = (CHAT_CACHE[curChatId] && CHAT_CACHE[curChatId].listing) ? CHAT_CACHE[curChatId].listing.title : '';
-      document.getElementById('cSub').textContent = '🔒 ' + cap(txn.status) + ' · ' + item;
+      document.getElementById('cSub').textContent = statusLabel(txn) + ' · ' + item;
+      renderChatList();
     }
   } catch {}
 }
@@ -2195,11 +2154,16 @@ function switchBrowseTab(t){
   applyBrowseSearch(document.getElementById('srch').value);   // re-filter the now-active tab
 }
 
+function setCompletedCount(n){
+  document.getElementById('tab-d').textContent = n ? `Completed (${n})` : 'Completed';
+}
+
 async function loadCompleted(){
   const c = document.getElementById('completedList');
   c.innerHTML = `<div style="padding:24px;text-align:center;color:var(--txt3);font-size:13px;">Loading…</div>`;
   try {
     const done = (await Api.listTransactions()).filter(t => t.status === 'completed');
+    setCompletedCount(done.length);
     if (!done.length) {
       c.innerHTML = emptyState({
         icon: ICON_CHECK,
@@ -2208,14 +2172,19 @@ async function loadCompleted(){
       });
       return;
     }
-    c.innerHTML = done.map(t => {
+    const sales = done.filter(t => t.seller_id === ME.user_id).length;
+    c.innerHTML = `<div class="card" style="margin:12px 14px;text-align:center;">
+        <div style="font:600 30px var(--serif);color:var(--txt1);">${done.length}</div>
+        <div style="font-size:9px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin-top:3px;">
+          Completed deal${done.length === 1 ? '' : 's'}</div>
+        <div style="font-size:12px;color:var(--txt2);margin-top:8px;">${sales} sold · ${done.length - sales} bought</div>
+      </div>` + done.map(t => {
       const sold = t.seller_id === ME.user_id;
-      const amt  = t.agreed_price ? '$' + Number(t.agreed_price).toFixed(0) : '';
       return `<div class="cli">
         <div class="av" style="background:var(--border);color:var(--txt2);">${sold ? 'S' : 'B'}</div>
         <div class="cm">
           <div class="cnr"><span class="cn">${sold ? 'Sold' : 'Bought'}</span><span class="ct">${timeAgo(t.completed_at || t.created_at)}</span></div>
-          <div class="cpr"><span class="cp">Transaction</span><span class="tag ${sold ? 't-sell' : 't-want'}" style="font-size:10px;">${sold ? '+' : '-'}${amt}</span></div>
+          <div class="cpr"><span class="cp">Transaction</span><span class="tag ${sold ? 't-sell' : 't-want'}" style="font-size:10px;">${sold ? 'SOLD' : 'BOUGHT'}</span></div>
         </div>
       </div>`;
     }).join('');
